@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "whitenoise.runserver_nostatic",
+    "mainmenu",
 ]
 
 MIDDLEWARE = [
@@ -132,9 +132,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Static File Serving (Whitenoise):
-STATIC_ROOT = BASE_DIR / "staticfiles"
-
-
+# STATICFILES_DIRS = [BASE_DIR / "static"]  # for local
+STATIC_ROOT = BASE_DIR / "staticfiles" # for Heroku
+STATIC_URL = "/static/"
 
 # when referring to static files, use:
 # <img src="{% static "images/hi.jpg" %}" alt="Hi!">
