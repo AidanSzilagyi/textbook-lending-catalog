@@ -3,4 +3,5 @@ from django.http import HttpResponse
 
 
 def index(request):
-    return HttpResponse("Welcome to the main menu.")
+    return render(request, "mainmenu/index.html", dict())
+    # HttpResponse("Welcome to the main menu.")
