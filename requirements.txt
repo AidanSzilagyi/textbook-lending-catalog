@@ -2,7 +2,7 @@ django>=5.1,<5.2
 gunicorn>=23,<24
 #dj-database-url>=2,<3
 whitenoise[brotli]>=6,<7
-django-bootstrap-v5
+django-bootstrap-v5==1.0.11
 
 # For a Postgres Database
 psycopg[c]; sys_platform == "linux"
