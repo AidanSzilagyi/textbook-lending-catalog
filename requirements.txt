@@ -1,0 +1,8 @@
+django>=5.1,<5.2
+gunicorn>=23,<24
+dj-database-url>=2,<3
+whitenoise[brotli]>=6,<7
+
+# For a Postgres Database
+psycopg[c]; sys_platform == "linux"
+psycopg[binary]; sys_platform != "linux"
