@@ -4,9 +4,14 @@ Please use a virtual environment. After cloning, run:
 1. cd .\project-a-28\
 2. py -m venv .venv
 3. .venv\Scripts\activate
-4. python -m pip install Django
+4. pip install django
 5. pip install django-bootstrap-v5
-6. pip install gunicorn
+6. pip install whitenoise
+7. python manage.py runserver
+
+# TODO:
+1. Bootstrap5 integration
 
 
-python manage.py runserver
+# Other
+pip install gunicorn
