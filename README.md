@@ -4,7 +4,7 @@ Please use a virtual environment. After cloning, run:
 1. cd .\project-a-28\
 2. py -m venv .venv
 3. .venv\Scripts\activate
-4. pip install django-bootstrap-v5 whitenoise
+4. pip install django==5.1.6 whitenoise
 5. python manage.py runserver
 
 # Webpage
