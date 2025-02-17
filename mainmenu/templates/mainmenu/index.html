@@ -8,6 +8,8 @@
     <body>
         <a class="text-center fixed-top btn btn-primary">This is the main menu.</a><br>
         <a>Testing static file serving:</a>
-        <img src="{% static 'mainmenu/images/danger.png' %}" alt="Danger">
+        <img src="{% static 'mainmenu/images/danger.png' %}" alt="Danger"> <br>
+        <a>Testing Database Connection: {{ info.important_text }}</a>
+
     </body>
 </html>

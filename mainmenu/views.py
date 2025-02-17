@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-
+from .models import TestObject
 
 def index(request):
-    return render(request, "mainmenu/index.html")
-    # HttpResponse("Welcome to the main menu.")
+    info = TestObject.objects.get(pk=1)
+    return render(request, "mainmenu/index.html", {"info": info})
