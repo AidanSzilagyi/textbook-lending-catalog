@@ -32,7 +32,7 @@ ALLOWED_HOSTS = [
 ]
 
 # 4 for Heroku, 2 for local
-SITE_ID = 4
+SITE_ID = 2
 
 # Application definition
 
@@ -100,10 +100,13 @@ SOCIALACCOUNT_PROVIDERS = {
 import os
 import dj_database_url
 
-if os.getenv('DATABASE_URL'):
-    DATABASES = {
-        "default": dj_database_url.config(default=os.getenv("DATABASE_URL"))
-    }
+db_url = "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dcee73lo5rne93"
+
+# if os.getenv('DATABASE_URL'):
+DATABASES = {
+    "default": dj_database_url.config(default=db_url) #os.getenv('DATABASE_URL')
+}
+'''
 else:
     DATABASES = {
         'default': {
@@ -111,6 +114,7 @@ else:
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
+'''
 
 
 # Password validation
