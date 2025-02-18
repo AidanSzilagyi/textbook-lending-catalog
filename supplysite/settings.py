@@ -32,7 +32,7 @@ ALLOWED_HOSTS = [
 ]
 
 # 4 for Heroku, 2 for local
-SITE_ID = 2
+SITE_ID = 4
 
 # Application definition
 
