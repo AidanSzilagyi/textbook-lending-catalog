@@ -156,7 +156,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Static File Serving (Whitenoise):
-# STATICFILES_DIRS = [BASE_DIR / "static"]  # for local
+STATICFILES_DIRS = [BASE_DIR / "static"]  # for local
 STATIC_ROOT = BASE_DIR / "staticfiles" # for Heroku
 STATIC_URL = "/static/"
 
