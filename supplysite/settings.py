@@ -26,12 +26,12 @@ SECRET_KEY = 'django-insecure-flmnm$d)xp8sd$=oy_p_yyx_nsrfl%ok8gla&tj7+k7l*9&f*4
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "supplysite-20c1e0704260.herokuapp.com",  # Heroku domain
+    "supplysite-20c1e0704260.herokuapp.com",
     "127.0.0.1",
     "localhost",
 ]
 
-
+SITE_ID = 3
 
 # Application definition
 
@@ -42,7 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "mainmenu.apps.MainmenuConfig",
+    "mainmenu",
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google"
 ]
 
 MIDDLEWARE = [
@@ -54,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 ROOT_URLCONF = 'supplysite.urls'
@@ -76,6 +82,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'supplysite.wsgi.application'
 
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": {
+            "profile",
+            "email"
+        },
+        "AUTH_PARAMS": {"access_type": "online"}
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -147,3 +163,11 @@ STATIC_URL = "/static/"
 # when referring to static files, use:
 # <img src="{% static "images/hi.jpg" %}" alt="Hi!">
 # not <img src="/static/images/hi.jpg" alt="Hi!">
+
+AUTHENTICATION_BACKENDS = {
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend"
+}
+
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"

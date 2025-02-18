@@ -1,6 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import TestObject
+from django.contrib.auth import logout
 
 def index(request):
     try:
@@ -8,3 +9,7 @@ def index(request):
     except TestObject.DoesNotExist:
         return render(request, "mainmenu/index.html", {"info": "This text only appears locally"})
     return render(request, "mainmenu/index.html", {"info": info.important_text})
+
+def logout_view(request):
+    logout(request)
+    return redirect("/")

@@ -1,7 +1,9 @@
+{% load static %}
+{% load socialaccount %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        {% load static %}
+        <title>Welcome</title>
 
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     </head>
@@ -11,5 +13,7 @@
         <img src="{% static 'mainmenu/images/danger.png' %}" alt="Danger"> <br>
         <a>Testing Database Connection: {{ info }}</a>
 
+        <h2>Google Login</h2>
+        <a href="{% provider_login_url 'google' %}?next=/">Login with Google</a>
     </body>
 </html>
