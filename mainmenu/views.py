@@ -19,3 +19,23 @@ def logout_view(request):
 @login_required
 def home_page(request):
     return render(request, "home_page.html")
+
+@login_required
+def profile(request):
+    return render(request, "profile.html")
+
+@login_required
+def messaging(request):
+    return render(request, "messaging.html")
+
+@login_required
+def lent_items(request):
+    return render(request, "lent_items.html")
+
+@login_required
+def borrowed_items(request):
+    return render(request, "borrowed_items.html")
+
+@login_required
+def marketplace(request):
+    return render(request, "marketplace.html")
