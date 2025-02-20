@@ -10,5 +10,5 @@ Please use a virtual environment. After cloning, run:
 Note that you automatically connect to the live database, even when running locally.
 
 # Webpage
-https://supplysite-20c1e0704260.herokuapp.com/menu/
+https://supplysite-20c1e0704260.herokuapp.com
 
