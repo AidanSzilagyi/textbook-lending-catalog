@@ -15,14 +15,19 @@ def logout_view(request):
     logout(request)
     return redirect("/")
 
+@login_required
+def home_page_router(request):
+    if request.user.profile.userRole == 1:
+        return librarian_home_page(request)
+    elif request.user.profile.userRole == 0:
+        return home_page(request)
 
 @login_required
 def home_page(request):
     return render(request, "home_page.html")
 
 @login_required
-def librarian_home_page(request, account_user):
-    i
+def librarian_home_page(request):
     return render(request, "librarian_home_page.html")
 
 @login_required
