@@ -104,18 +104,8 @@ db_url = "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a
 
 # if os.getenv('DATABASE_URL'):
 DATABASES = {
-    "default": dj_database_url.config(default=db_url) #os.getenv('DATABASE_URL')
+    'default': dj_database_url.parse(db_url)  # Use the db_url for production (Heroku or any other PostgreSQL setup)
 }
-'''
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-'''
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
