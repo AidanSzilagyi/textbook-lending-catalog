@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from .models import TestObject
+from .models import TestObject, Account
 from django.contrib.auth import logout
 
 def index(request):
@@ -19,6 +19,11 @@ def logout_view(request):
 @login_required
 def home_page(request):
     return render(request, "home_page.html")
+
+@login_required
+def librarian_home_page(request, account_user):
+    i
+    return render(request, "librarian_home_page.html")
 
 @login_required
 def profile(request):

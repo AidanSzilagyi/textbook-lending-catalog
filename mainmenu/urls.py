@@ -10,4 +10,5 @@ urlpatterns = [
     path("lent_items/", views.lent_items, name='lent_items'),
     path("borrowed_items/", views.borrowed_items, name='borrowed_items'),
     path("marketplace/", views.marketplace, name='marketplace'),
+    path("librarian_homepage/", views.librarian_home_page, name='librarian_homepage'),
 ]
