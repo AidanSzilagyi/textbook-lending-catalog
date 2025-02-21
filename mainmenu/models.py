@@ -9,4 +9,6 @@ class Account(models.Model):
     user = models.CharField("user", max_length=200)
     email = models.CharField("email", max_length=200)
     password = models.CharField("password", max_length=200)
-    
+    userRole = models.CharField("userRole", max_length=200, default="Patron")
+
+
