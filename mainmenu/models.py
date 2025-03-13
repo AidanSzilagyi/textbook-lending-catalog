@@ -10,7 +10,7 @@ class TestObject(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    profile_picture = models.ImageField(upload_to='media/profile_pics/', blank=True, null=True)
     userRole = models.IntegerField(default=0) #0 represents patron, 1 represents librarian
     def __str__(self):
         return self.user.username
