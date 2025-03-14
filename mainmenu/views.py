@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import TestObject, Profile
 from django.contrib.auth import logout
+from django.core.files.storage import default_storage
 
 def index(request):
     try:
@@ -33,6 +34,13 @@ def librarian_home_page(request):
 @login_required
 def profile(request):
     return render(request, "profile.html")
+
+def upload_pfp(request):
+    if request.method == 'POST' and request.FILES.get('pfp'):
+        pfp = request.FILES['pfp']
+        file_url = default_storage.save(f"media/profile_pics/{request.user.username}.png", pfp)
+    return profile(request)
+
 
 @login_required
 def messaging(request):
