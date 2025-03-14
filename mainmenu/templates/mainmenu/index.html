@@ -11,7 +11,10 @@
         <a class="text-center fixed-top btn btn-primary">This is the main menu.</a><br>
         <a>Testing static file serving:</a>
         <img src="{% static 'mainmenu/images/danger.png' %}" alt="Danger"> <br>
-        <a>Testing Database Connection: {{ info }}</a>
+        <a>Testing Database Connection: {{ info }}</a> <br>
+
+        <a>Testing S3 Connection:</a>
+        <img src="{% static 'media/profile_pics/danger3.png' %}" alt="Danger"> <br>
 
         <h2>Google Login</h2>
         <a href="{% provider_login_url 'google' %}?next=/homepage/">Login with Google</a>
