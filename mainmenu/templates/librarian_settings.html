@@ -16,6 +16,19 @@
       <p>{{ user.email }}</p>
     </div>
   </div>
+  <form action="{% url 'patron_to_librarian' %}" method="post">
+  {%  csrf_token %}
+  <fieldset>
+    <legend><h1>Select who to upgrade to a librarian</h1></legend>
+      {% for patron in patron_list %}
+      <div>
+        <input type ="radio" name="patron" id="patron{{ forloop.counter }}" value="{{ patron.id }}">
+        <label for="patron{{ forloop.counter }}">{{patron.user.username}}</label><br>
+      </div>
+      {% endfor %}
+  </fieldset>
+  <input type="submit" value="Submit">
+  </form>
   <div class="mt-4">
     <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
   </div>

@@ -1,8 +1,10 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from .models import TestObject, Profile
 from django.contrib.auth import logout
+from django.template import loader
+from django.urls import reverse
 
 def index(request):
     try:
@@ -52,4 +54,21 @@ def marketplace(request):
 
 @login_required
 def librarian_settings(request):
-    return render(request, "librarian_settings.html")
+    patron_list = Profile.objects.filter(userRole=0)
+
+    context = {
+        "patron_list": patron_list,
+    }
+    return render(request, "librarian_settings.html", context )
+
+@login_required
+def patron_to_librarian(request):
+    patron_list = Profile.objects.filter(userRole=0)
+    try:
+        selected_patron = patron_list.get(pk=request.POST["patron"])
+    except (KeyError, Profile.DoesNotExist):
+        return render(request, "librarian_settings.html", {"patron_list": patron_list})
+    else:
+        selected_patron.userRole = 1
+        selected_patron.save()
+        return HttpResponseRedirect(reverse("home_page_router"))
