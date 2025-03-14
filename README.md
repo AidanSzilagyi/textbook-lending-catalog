@@ -9,6 +9,9 @@ Please use a virtual environment. After cloning, run:
 
 Note that you automatically connect to the live database, even when running locally.
 
+The main branch has amazon S3 configured, which cannot be accessed locally.
+The development branch does not have S3 configured and is what you should branch from.
+
 # Webpage
 https://supplysite-20c1e0704260.herokuapp.com
 
