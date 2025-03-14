@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .models import TestObject, Profile
+from .models import TestObject, Profile, Class, Item
 from django.contrib.auth import logout
 
 def index(request):
@@ -49,3 +49,14 @@ def borrowed_items(request):
 @login_required
 def marketplace(request):
     return render(request, "marketplace.html")
+
+@login_required
+def required_materials(request):
+    classes = Class.objects.all()
+    return render(request, "required_materials.html", {"classes": classes})
+
+@login_required
+def class_detail(request, slug):
+    class_obj = get_object_or_404(Class, slug=slug)
+    required_items = Item.objects.filter(tags__class_obj=class_obj).distinct()
+    return render(request, 'class_detail.html', {'class_obj': class_obj, 'required_items': required_items})
