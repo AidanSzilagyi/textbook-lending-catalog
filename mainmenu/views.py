@@ -1,9 +1,10 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
-from .models import TestObject, Profile, Class, Item
+from django.shortcuts import render, redirect
+from django.http import HttpResponse, HttpResponseRedirect
+from .models import TestObject, Profile
 from django.contrib.auth import logout
-from django.core.files.storage import default_storage
+from django.template import loader
+from django.urls import reverse
 
 def index(request):
     try:
@@ -35,13 +36,6 @@ def librarian_home_page(request):
 def profile(request):
     return render(request, "profile.html")
 
-def upload_pfp(request):
-    if request.method == 'POST' and request.FILES.get('pfp'):
-        pfp = request.FILES['pfp']
-        file_url = default_storage.save(f"media/profile_pics/{request.user.username}.png", pfp)
-    return profile(request)
-
-
 @login_required
 def messaging(request):
     return render(request, "messaging.html")
@@ -59,12 +53,22 @@ def marketplace(request):
     return render(request, "marketplace.html")
 
 @login_required
-def required_materials(request):
-    classes = Class.objects.all()
-    return render(request, "required_materials.html", {"classes": classes})
+def librarian_settings(request):
+    patron_list = Profile.objects.filter(userRole=0)
+
+    context = {
+        "patron_list": patron_list,
+    }
+    return render(request, "librarian_settings.html", context )
 
 @login_required
-def class_detail(request, slug):
-    class_obj = get_object_or_404(Class, slug=slug)
-    required_items = Item.objects.filter(tags__class_obj=class_obj).distinct()
-    return render(request, 'class_detail.html', {'class_obj': class_obj, 'required_items': required_items})
+def patron_to_librarian(request):
+    patron_list = Profile.objects.filter(userRole=0)
+    try:
+        selected_patron = patron_list.get(pk=request.POST["patron"])
+    except (KeyError, Profile.DoesNotExist):
+        return render(request, "librarian_settings.html", {"patron_list": patron_list})
+    else:
+        selected_patron.userRole = 1
+        selected_patron.save()
+        return HttpResponseRedirect(reverse("home_page_router"))
