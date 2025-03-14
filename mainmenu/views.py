@@ -49,3 +49,7 @@ def borrowed_items(request):
 @login_required
 def marketplace(request):
     return render(request, "marketplace.html")
+
+@login_required
+def librarian_settings(request):
+    return render(request, "librarian_settings.html")

@@ -12,4 +12,5 @@ urlpatterns = [
     path("marketplace/", views.marketplace, name='marketplace'),
     path("librarian_home_page/", views.librarian_home_page, name='librarian_home_page'),
     path("homepage/", views.home_page_router, name='home_page_router'),
+    path("librarian_settings/", views.librarian_settings, name='librarian_settings'),
 ]
