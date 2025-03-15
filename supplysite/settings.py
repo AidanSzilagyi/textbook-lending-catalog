@@ -108,6 +108,10 @@ DATABASES = {
     'default': dj_database_url.parse(db_url)  # Use the db_url for production (Heroku or any other PostgreSQL setup)
 }
 
+DATABASES['default']['TEST'] = {
+    'NAME': DATABASES['default']['NAME'],  # Use the existing database
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
