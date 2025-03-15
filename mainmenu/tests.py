@@ -1,4 +1,7 @@
 from django.test import TestCase
+from .models import Profile, create_user_profile
+from django.urls import reverse
+
 
 
 
