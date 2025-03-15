@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
+from django.contrib.messages.storage import default_storage
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-from .models import TestObject, Profile
+from .models import TestObject, Profile, Item, Class
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
@@ -77,4 +78,9 @@ def patron_to_librarian(request):
         selected_patron.userRole = 1
         selected_patron.save()
         return HttpResponseRedirect(reverse("home_page_router"))
-    main
+
+def upload_pfp(request):
+    if request.method == 'POST' and request.FILES.get('pfp'):
+        pfp = request.FILES['pfp']
+        file_url = default_storage.save(f"media/profile_pics/{request.user.username}.png", pfp)
+    return profile(request)
