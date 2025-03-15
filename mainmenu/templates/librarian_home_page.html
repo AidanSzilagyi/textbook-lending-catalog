@@ -15,11 +15,13 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{% url 'librarian_settings' %}">Settings</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Profile</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'messaging' %}">Messaging</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'borrowed_items' %}">Borrowed Items</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'lent_items' %}">Lent Items</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'marketplace' %}">Marketplace</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'required_materials' %}">Required Materials</a></li>
       </ul>
     </div>
   </div>

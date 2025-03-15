@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    "allauth.socialaccount.providers.google"
+    "allauth.socialaccount.providers.google",
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -166,3 +167,23 @@ AUTHENTICATION_BACKENDS = {
 
 LOGIN_REDIRECT_URL = "/homepage/"
 LOGOUT_REDIRECT_URL = "/"
+
+
+# Amazon S3 and media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+AWS_STORAGE_BUCKET_NAME = 'supplysite-django-unique'
+AWS_S3_FILE_OVERWRITE = True
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+
+    # not needed for now
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+}
