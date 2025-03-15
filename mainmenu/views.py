@@ -68,3 +68,5 @@ def class_detail(request, slug):
     class_obj = get_object_or_404(Class, slug=slug)
     required_items = Item.objects.filter(tags__class_obj=class_obj).distinct()
     return render(request, 'class_detail.html', {'class_obj': class_obj, 'required_items': required_items})
+
+#difference????
