@@ -16,7 +16,7 @@ class LibProfileViewTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username='user', password='passwerd')
-        self.profile = create_user_profile(user=self.user, userRole=1)
+        self.profile = Profile.objects.create(user=self.user, userRole=1)
         self.url = reverse('librarian_homepage')
 
     def test_librarian_logged_in(self):
