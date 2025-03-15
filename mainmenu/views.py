@@ -6,6 +6,7 @@ from .models import TestObject, Profile, Item, Class
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
+from django.core.files.storage import default_storage
 
 def index(request):
     try:
@@ -36,6 +37,12 @@ def librarian_home_page(request):
 @login_required
 def profile(request):
     return render(request, "profile.html")
+
+def upload_pfp(request):
+    if request.method == 'POST' and request.FILES.get('pfp'):
+        pfp = request.FILES['pfp']
+        file_url = default_storage.save(f"media/profile_pics/{request.user.username}.png", pfp)
+    return profile(request)
 
 @login_required
 def messaging(request):
