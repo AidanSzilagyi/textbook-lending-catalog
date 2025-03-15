@@ -14,5 +14,8 @@ urlpatterns = [
     path("homepage/", views.home_page_router, name='home_page_router'),
     path("required_materials/", views.required_materials, name='required_materials'),
     path('classes/<slug:slug>/', views.class_detail, name='class_detail'),
-    path("upload_pfp/", views.upload_pfp, name="upload_pfp")
+    path("upload_pfp/", views.upload_pfp, name="upload_pfp"),
+
+    path("librarian_settings/", views.librarian_settings, name='librarian_settings'),
+    path("patron_to_librarian/", views.patron_to_librarian, name='patron_to_librarian'),
 ]
