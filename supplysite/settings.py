@@ -111,15 +111,16 @@ DATABASES = {
 test_db_url = "postgres://ua56dt2d3bos54:p1a58befb6fdc1a96b9687fc7ffb9e6e2712749835d355f538592e3b1a4a10c21@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dbb8cf8b157bun"
 #HEROKU_POSTGRESQL_GOLD_URL
 if os.getenv("CI"):
-    DATABASES['default'] = dj_database_url.parse(test_db_url, conn_max_age=600)
+    DATABASES['default'] = dj_database_url.parse(test_db_url)
 
     DATABASES['default']['TEST'] = {
-        'NAME': DATABASES['default']['NAME'], 
-        'USER': DATABASES['default']['USER'],
-        'PASSWORD': DATABASES['default']['PASSWORD'],
-        'HOST': DATABASES['default']['HOST'], 
-        'PORT': DATABASES['default']['PORT'],
+    'NAME': 'supplysitetestdb',
+    'USER': DATABASES['default']['USER'],
+    'PASSWORD': DATABASES['default']['PASSWORD'],
+    'HOST': DATABASES['default']['HOST'],
+    'PORT': DATABASES['default']['PORT'],
     }
+
 
 
 # Password validation
