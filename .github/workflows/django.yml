@@ -13,14 +13,14 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.12]
-        
+
     services:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: u87mp92uopqaal
-          POSTGRES_PASSWORD: pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c
-          POSTGRES_DB: dcee73lo5rne93
+          POSTGRES_USER: ua56dt2d3bos54
+          POSTGRES_PASSWORD: p1a58befb6fdc1a96b9687fc7ffb9e6e2712749835d355f538592e3b1a4a10c21
+          POSTGRES_DB: dbb8cf8b157bun
         ports:
           - 5432:5432
 
@@ -37,5 +37,7 @@ jobs:
     - name: Run Migrations
       run: python manage.py migrate
     - name: Run Tests
-      run: |
-        python manage.py test
+      run: python manage.py test
+      env:
+        DATABASE_URL: "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dcee73lo5rne93"
+        TEST_DATABASE_URL: "postgres://ua56dt2d3bos54:p1a58befb6fdc1a96b9687fc7ffb9e6e2712749835d355f538592e3b1a4a10c21@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dbb8cf8b157bun"

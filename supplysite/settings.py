@@ -103,14 +103,25 @@ import dj_database_url
 
 db_url = "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dcee73lo5rne93"
 
-# if os.getenv('DATABASE_URL'):
 DATABASES = {
     'default': dj_database_url.parse(db_url)  # Use the db_url for production (Heroku or any other PostgreSQL setup)
 }
 
-DATABASES['default']['TEST'] = {
-    'NAME': DATABASES['default']['NAME'],  # Use the existing database
-}
+# For a seperate Testing Database
+test_db_url = "postgres://ua56dt2d3bos54:p1a58befb6fdc1a96b9687fc7ffb9e6e2712749835d355f538592e3b1a4a10c21@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dbb8cf8b157bun"
+#HEROKU_POSTGRESQL_GOLD_URL
+if os.getenv("CI"):
+    DATABASES['default'] = dj_database_url.parse(test_db_url, conn_max_age=600)
+
+    # Use the same test database for testing
+    DATABASES['default']['TEST'] = {
+        'NAME': DATABASES['default']['NAME'],  # Use the same database for testing
+        'USER': DATABASES['default']['USER'],  # Use the same user
+        'PASSWORD': DATABASES['default']['PASSWORD'],  # Use the same password
+        'HOST': DATABASES['default']['HOST'],  # Use the same host
+        'PORT': DATABASES['default']['PORT'],  # Use the same port
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
