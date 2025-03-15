@@ -2,9 +2,12 @@ from django.contrib import admin
 
 
 # Register your models here.
-from .models import TestObject,Profile
+from .models import TestObject,Profile, Class, Tag, Item
 
 admin.site.register(TestObject)
+admin.site.register(Class)
+admin.site.register(Tag)
+admin.site.register(Item)
 
 class ProfileAdmin(admin.ModelAdmin):
     # Define which fields to display in the admin list view
@@ -34,4 +37,3 @@ class ProfileAdmin(admin.ModelAdmin):
     user_password.short_description = 'Password'
 
 admin.site.register(Profile, ProfileAdmin)
-
