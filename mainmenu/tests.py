@@ -1,6 +1,8 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from .models import Profile, create_user_profile
 from django.urls import reverse
+import requests
+from django.contrib.auth.models import User
 
 
 
