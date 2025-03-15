@@ -84,3 +84,8 @@ def upload_pfp(request):
         pfp = request.FILES['pfp']
         file_url = default_storage.save(f"media/profile_pics/{request.user.username}.png", pfp)
     return profile(request)
+
+@login_required
+def required_materials(request):
+    classes = Class.objects.all()
+    return render(request, "required_materials.html", {"classes": classes})
