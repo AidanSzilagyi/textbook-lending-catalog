@@ -113,7 +113,9 @@ DATABASES['default']['TEST'] = {
     'PASSWORD': DATABASES['default']['PASSWORD'],
     'HOST': DATABASES['default']['HOST'],
     'PORT': DATABASES['default']['PORT'],
+    'MIRROR': 'default', 
 }
+
 
 
 
