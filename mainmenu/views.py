@@ -77,7 +77,7 @@ def class_detail(request, slug):
     class_obj = get_object_or_404(Class, slug=slug)
     required_items = Item.objects.filter(tags__class_obj=class_obj).distinct()
     return render(request, 'class_detail.html', {'class_obj': class_obj, 'required_items': required_items})
-  
+
 def patron_to_librarian(request):
     patron_list = Profile.objects.filter(userRole=0)
     try:
