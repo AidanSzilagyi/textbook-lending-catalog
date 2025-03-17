@@ -10,7 +10,7 @@
 </head>
 <body class="container mt-5">
     <div class="fixed-top bg-light text-center py-3">
-        <h1>Profile</h1>
+        <h1>Your Profile</h1>
     </div>
     <div class="d-flex align-items-center">
         <div>
@@ -19,21 +19,23 @@
         </div>
     </div>
     <br>
-    <div><a>Profile Picture: </a></div>
+    <div class="mt-4">
+        <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
+    </div>
+    <br>
+    <div><a><b>Profile Picture:</b></a></div>
+    <br>
     <div class="mb-3">
         <form action="{% url 'upload_pfp' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <label for="formFile" class="form-label">Default file input example</label>
+            <!-- <label for="formFile" class="form-label">Default file input example</label> -->
             <input class="form-control" type="file" id="pfp" name="pfp">
             <input type="submit">
         </form>
     </div>
     <div>
-        <img src="{% static 'profile-placeholder.png'}" alt="pfp"> <br>
+        <img src="{% static 'profile-placeholder.png' %}" alt="pfp" class="img-fluid rounded" style="max-width: 200px;"> <br>
     </div>
 
-    <div class="mt-4">
-        <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
-    </div>
 </body>
 </html>
