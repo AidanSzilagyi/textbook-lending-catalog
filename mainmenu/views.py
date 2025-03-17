@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.messages.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
-from .models import TestObject, Profile, Item, Class
+from .models import TestObject, Profile, Item, Class, Tag
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
@@ -17,16 +17,18 @@ def index(request):
 
 def logout_view(request):
     logout(request)
-    return redirect("/")
+    return redirect("/login")
 
-@login_required
+
 def home_page_router(request):
-    if request.user.profile.userRole == 1:
+    if not request.user.is_authenticated:
+        return home_page(request)
+    elif request.user.profile.userRole == 1:
         return librarian_home_page(request)
     elif request.user.profile.userRole == 0:
         return home_page(request)
 
-@login_required
+
 def home_page(request):
     return render(request, "home_page.html")
 
@@ -58,7 +60,8 @@ def borrowed_items(request):
 
 @login_required
 def marketplace(request):
-    return render(request, "marketplace.html")
+    items = Item.objects.all()
+    return render(request, "marketplace.html", {"items": items})
 
 @login_required
 def librarian_settings(request):
@@ -96,3 +99,45 @@ def upload_pfp(request):
 def required_materials(request):
     classes = Class.objects.all()
     return render(request, "required_materials.html", {"classes": classes})
+
+@login_required
+def add_item(request):
+    if request.user.profile.userRole != 1:
+        return redirect('marketplace')
+    
+    classes = Class.objects.all()
+    tags = Tag.objects.all()
+    
+    return render(request, "add_item.html", {
+        "classes": classes,
+        "tags": tags
+    })
+
+@login_required
+def add_item_submit(request):
+    if request.user.profile.userRole != 1:
+        return redirect('marketplace')
+    
+    if request.method == 'POST':
+        identifier = request.POST.get('identifier')
+        is_available = 'is_available' in request.POST
+        
+        new_item = Item(
+            identifier=identifier,
+            is_available=is_available
+        )
+        new_item.save()
+        
+        tag_ids = request.POST.getlist('tags')
+        for tag_id in tag_ids:
+            tag = Tag.objects.get(id=tag_id)
+            new_item.tags.add(tag)
+        
+        if request.FILES.get('item_pic'):
+            item_pic = request.FILES['item_pic']
+            clean_name = ''.join(c for c in identifier if c.isalnum() or c in '._- ')
+            clean_name = clean_name.replace(' ', '_').lower()
+            file_url = default_storage.save(f"media/item_pics/{clean_name}.png", item_pic)        
+        return redirect('marketplace')
+    
+    return redirect('add_item')
