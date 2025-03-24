@@ -42,9 +42,10 @@ def profile(request):
 
 def upload_pfp(request):
     if request.method == 'POST' and request.FILES.get('pfp'):
-        pfp = request.FILES['pfp']
-        file_url = default_storage.save(f"media/profile_pics/{request.user.username}.png", pfp)
-    return profile(request)
+        profile = request.user.profile
+        profile.profile_picture = request.FILES['pfp']
+        profile.save()
+    return redirect('profile')
 
 @login_required
 def messaging(request):

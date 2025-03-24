@@ -35,7 +35,17 @@
         </form>
     </div>
     <div>
-        <img src="{% static 'media/profile_pics/' %}{{ user.username }}.png" alt="pfp"> <br>
+        <br>
+        {% if USE_AWS %} 
+            {% if user.profile.profile_picture.url %}
+                <img src="{{ user.profile.profile_picture.url }}" alt="pfp">
+                {% else %}
+                <img src="{% static 'profile-placeholder.png' %}" alt="pfp" class="img-fluid rounded" style="max-width: 200px;">
+            {% endif %}
+        {% else %}
+            <img src="{% static 'profile-placeholder.png' %}" alt="pfp" class="img-fluid rounded" style="max-width: 200px;">
+        {% endif %}
+        <br>
     </div>
 
     <div class="mt-4">
