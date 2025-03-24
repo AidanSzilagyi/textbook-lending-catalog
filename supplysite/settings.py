@@ -102,7 +102,7 @@ SOCIALACCOUNT_PROVIDERS = {
 import os
 import dj_database_url
 
-db_url = "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dcee73lo5rne93"
+db_url = os.environ.get("DATABASE_URL", "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dcee73lo5rne93")
 
 DATABASES = {
     'default': dj_database_url.parse(db_url) 

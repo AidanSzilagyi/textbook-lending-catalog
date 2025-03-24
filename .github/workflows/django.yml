@@ -23,13 +23,20 @@ jobs:
           POSTGRES_DB: dcee73lo5rne93
         ports:
           - 5432:5432
-
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+        - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -U u87mp92uopqaal; do sleep 1; done
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
