@@ -28,24 +28,30 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
-        - name: Wait for PostgreSQL
+
+    - name: Wait for PostgreSQL
       run: |
         until pg_isready -h localhost -U u87mp92uopqaal; do sleep 1; done
+
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+
     - name: Run Migrations
       run: python manage.py migrate
       env:
-        DATABASE_URL: "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dcee73lo5rne93"
+        DATABASE_URL: "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@localhost:5432/dcee73lo5rne93"
+
     - name: Run Tests
       run: python manage.py test --keepdb
       env:
-        DATABASE_URL: "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@c8m0261h0c7idk.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dcee73lo5rne93"
+        DATABASE_URL: "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@localhost:5432/dcee73lo5rne93"
