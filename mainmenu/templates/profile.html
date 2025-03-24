@@ -29,7 +29,6 @@
     <div class="mb-3">
         <form action="{% url 'upload_pfp' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <!-- <label for="formFile" class="form-label">Default file input example</label> -->
             <input class="form-control" type="file" id="pfp" name="pfp">
             <input type="submit">
         </form>

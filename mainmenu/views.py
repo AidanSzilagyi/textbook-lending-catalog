@@ -38,14 +38,16 @@ def librarian_home_page(request):
 
 @login_required
 def profile(request):
+    print("here")
     return render(request, "profile.html")
 
+@login_required
 def upload_pfp(request):
     if request.method == 'POST' and request.FILES.get('pfp'):
         profile = request.user.profile
         profile.profile_picture = request.FILES['pfp']
         profile.save()
-    return redirect('profile')
+    return redirect('/profile/')
 
 @login_required
 def messaging(request):
@@ -89,12 +91,6 @@ def patron_to_librarian(request):
         selected_patron.userRole = 1
         selected_patron.save()
         return HttpResponseRedirect(reverse("home_page_router"))
-
-def upload_pfp(request):
-    if request.method == 'POST' and request.FILES.get('pfp'):
-        pfp = request.FILES['pfp']
-        file_url = default_storage.save(f"media/profile_pics/{request.user.username}.png", pfp)
-    return profile(request)
 
 @login_required
 def required_materials(request):
