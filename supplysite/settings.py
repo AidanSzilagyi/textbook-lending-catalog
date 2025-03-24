@@ -77,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'mainmenu.context_processors.use_aws_flag',
             ],
         },
     },
@@ -184,6 +185,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 AWS_STORAGE_BUCKET_NAME = 'supplysite-django-unique'
 AWS_S3_FILE_OVERWRITE = True
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+
+# Figure out if server has AWS access
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', None)
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', None)
+USE_AWS = bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
 
 STORAGES = {
     "default": {
