@@ -90,12 +90,6 @@ def patron_to_librarian(request):
         selected_patron.save()
         return HttpResponseRedirect(reverse("home_page_router"))
 
-def upload_pfp(request):
-    if request.method == 'POST' and request.FILES.get('pfp'):
-        pfp = request.FILES['pfp']
-        file_url = default_storage.save(f"media/profile_pics/{request.user.username}.png", pfp)
-    return profile(request)
-
 @login_required
 def required_materials(request):
     classes = Class.objects.all()
