@@ -40,6 +40,14 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
+class Collections(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank = True)
+    items = models.ManyToManyField(Item, related_name='collections')
+    creator = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name = "collections")
+    def __str__(self):
+        return self.title
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
