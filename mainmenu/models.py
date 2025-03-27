@@ -41,12 +41,27 @@ class Profile(models.Model):
         return self.user.username
 
 class Collections(models.Model):
+    VISIBILITY_CHOICES = [
+        (PUBLIC, 'Public'),
+        (PRIVATE, 'Private'),
+    ]
     title = models.CharField(max_length=255)
     description = models.TextField(blank = True)
     items = models.ManyToManyField(Item, related_name='collections')
     creator = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name = "collections")
+    visibility = models.CharField(
+        max_length=8,
+        choices=VISIBILITY_CHOICES,
+        default=PUBLIC
+    )
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        """Ensure only librarians can create private collections."""
+        if self.creator.userRole == 0:  # If creator is a patron
+            self.visibility = self.PUBLIC  # Force visibility to Public
+        super().save(*args, **kwargs)
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
