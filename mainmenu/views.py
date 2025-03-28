@@ -145,6 +145,20 @@ def class_create(request):
 
     return redirect('home_page')
 
+
+@login_required
+def tag_create(request):
+    if request.user.profile.userRole != 1:
+        return HttpResponseForbidden("You are not authorized to add a tag.")
+
+    if request.method == "POST":
+        tag_name = request.POST.get("tag_name", "").strip()
+        if tag_name:
+            Tag.objects.create(name=tag_name)
+        return redirect('required_materials')
+
+    return redirect('required_materials')
+
 @login_required
 def add_item_submit(request):
     if request.user.profile.userRole != 1:
@@ -196,4 +210,15 @@ def material_create(request, slug):
 
         return redirect('class_detail', slug=slug)
 
+    return redirect('class_detail', slug=slug)
+
+
+@login_required
+def unlink_material(request, slug, item_id):
+    if request.user.profile.userRole != 1:
+        return HttpResponseForbidden("You are not authorized to remove material.")
+
+    class_obj = get_object_or_404(Class, slug=slug)
+    item = get_object_or_404(Item, id=item_id)
+    class_obj.items.remove(item)
     return redirect('class_detail', slug=slug)

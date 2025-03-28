@@ -21,4 +21,6 @@ urlpatterns = [
     path("patron_to_librarian/", views.patron_to_librarian, name='patron_to_librarian'),
     path('add-item/', views.add_item, name='add_item'),
     path('add-item-submit/', views.add_item_submit, name='add_item_submit'),
+    path('tag_create/', views.tag_create, name='tag_create'),
+    path('classes/<slug:slug>/unlink_material/<int:item_id>/', views.unlink_material, name='unlink_material'),
 ]

@@ -9,7 +9,8 @@
     .scroll-container {
       max-height: 300px;
     }
-    #classForm {
+    /* Hide forms initially */
+    #classForm, #tagForm {
       display: none;
       margin-top: 20px;
     }
@@ -30,9 +31,12 @@
     <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
     {% if user.profile.userRole == 1 %}
       <button id="addClassBtn" class="btn btn-success ms-2">Add Class</button>
+      <button id="addTagBtn" class="btn btn-info ms-2">Add Tag</button>
     {% endif %}
   </div>
+  
   {% if user.profile.userRole == 1 %}
+    <!-- Hidden form for creating a new Class -->
     <div id="classForm" class="card p-4">
       <form method="POST" action="{% url 'class_create' %}">
         {% csrf_token %}
@@ -45,10 +49,24 @@
           <textarea name="description" class="form-control" id="classDescription" rows="3" required></textarea>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
-        <button type="button" id="cancelBtn" class="btn btn-secondary ms-2">Cancel</button>
+        <button type="button" id="cancelClassBtn" class="btn btn-secondary ms-2">Cancel</button>
+      </form>
+    </div>
+
+    <!-- Hidden form for creating a new Tag -->
+    <div id="tagForm" class="card p-4 mt-3">
+      <form method="POST" action="{% url 'tag_create' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="tagName" class="form-label">Tag Name</label>
+          <input type="text" name="tag_name" id="tagName" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Tag</button>
+        <button type="button" id="cancelTagBtn" class="btn btn-secondary ms-2">Cancel</button>
       </form>
     </div>
   {% endif %}
+
   <div class="scroll-container mt-4">
     <div class="d-flex flex-row overflow-auto">
       {% for class_obj in classes %}
@@ -65,20 +83,35 @@
       {% endfor %}
     </div>
   </div>
+
   <script>
     document.addEventListener("DOMContentLoaded", function(){
       const addClassBtn = document.getElementById("addClassBtn");
-      const cancelBtn = document.getElementById("cancelBtn");
+      const cancelClassBtn = document.getElementById("cancelClassBtn");
       const classForm = document.getElementById("classForm");
+
+      const addTagBtn = document.getElementById("addTagBtn");
+      const cancelTagBtn = document.getElementById("cancelTagBtn");
+      const tagForm = document.getElementById("tagForm");
 
       if(addClassBtn){
         addClassBtn.addEventListener("click", function(){
           classForm.style.display = "block";
         });
       }
-      if(cancelBtn){
-        cancelBtn.addEventListener("click", function(){
+      if(cancelClassBtn){
+        cancelClassBtn.addEventListener("click", function(){
           classForm.style.display = "none";
+        });
+      }
+      if(addTagBtn){
+        addTagBtn.addEventListener("click", function(){
+          tagForm.style.display = "block";
+        });
+      }
+      if(cancelTagBtn){
+        cancelTagBtn.addEventListener("click", function(){
+          tagForm.style.display = "none";
         });
       }
     });

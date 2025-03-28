@@ -5,6 +5,14 @@
   <title>{{ class_obj.name }} - Class Details</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .unlink-btn {
+      color: red;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
 </head>
 <body class="container mt-5">
   <header class="fixed-top bg-light text-center py-3">
@@ -20,20 +28,26 @@
       {% if required_items %}
       <div class="list-group">
         {% for item in required_items %}
-          <div class="list-group-item">
-            <h5 class="mb-1">{{ item.identifier }}</h5>
-            <p class="mb-1">
-              <small>
-                Tags:
-                {% for tag in item.tags.all %}
-                  {{ tag.name }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
-              </small>
-            </p>
-            {% if item.is_available %}
-              <span class="badge bg-success">Available</span>
-            {% else %}
-              <span class="badge bg-danger">Not Available</span>
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+              <h5 class="mb-1">{{ item.identifier }}</h5>
+              <p class="mb-1">
+                <small>
+                  Tags:
+                  {% for tag in item.tags.all %}
+                    {{ tag.name }}{% if not forloop.last %}, {% endif %}
+                  {% endfor %}
+                </small>
+              </p>
+              {% if item.is_available %}
+                <span class="badge bg-success">Available</span>
+              {% else %}
+                <span class="badge bg-danger">Not Available</span>
+              {% endif %}
+            </div>
+            {% if user.profile.userRole == 1 %}
+              <!-- Unlink button for librarians -->
+              <a href="{% url 'unlink_material' class_obj.slug item.id %}" class="unlink-btn" title="Remove material from this class">X</a>
             {% endif %}
           </div>
         {% endfor %}
