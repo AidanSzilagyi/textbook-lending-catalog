@@ -6,6 +6,8 @@ urlpatterns = [
     path("logout", views.logout_view),
     path("", views.home_page, name='home_page'),
     path("profile/", views.profile, name='profile'),
+    path('classes/create/', views.class_create, name='class_create'),
+    path('classes/<slug:slug>/material_create/', views.material_create, name='material_create'),
     path("messaging/", views.messaging, name='messaging'),
     path("lent_items/", views.lent_items, name='lent_items'),
     path("borrowed_items/", views.borrowed_items, name='borrowed_items'),
