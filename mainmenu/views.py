@@ -23,16 +23,22 @@ def logout_view(request):
 
 
 def home_page_router(request):
+    '''
     if not request.user.is_authenticated:
         return home_page(request)
     elif request.user.profile.userRole == 1:
         return librarian_home_page(request)
     elif request.user.profile.userRole == 0:
         return home_page(request)
-
+    '''
+    return home_page(request)
 
 def home_page(request):
-    return render(request, "home_page.html")
+    context = {
+        'tags': Tag.objects.all(),
+        'items': Item.objects.all(),
+    }
+    return render(request, 'home_page.html', context)
 
 @login_required
 def librarian_home_page(request):
@@ -80,13 +86,13 @@ def librarian_settings(request):
 
 def class_detail(request, slug):
     class_obj = get_object_or_404(Class, slug=slug)
-    required_items = class_obj.items.all()
-    tags = Tag.objects.all()
+    required_tags = class_obj.required_tags.all()
+    available_tags = Tag.objects.exclude(id__in=required_tags.values_list('id', flat=True))
 
     context = {
         'class_obj': class_obj,
-        'required_items': required_items,
-        'tags': tags,
+        'required_tags': required_tags,
+        'available_tags': available_tags,
     }
     return render(request, 'class_detail.html', context)
 
@@ -214,11 +220,46 @@ def material_create(request, slug):
 
 
 @login_required
-def unlink_material(request, slug, item_id):
+def unlink_required_tag(request, slug, tag_id):
     if request.user.profile.userRole != 1:
-        return HttpResponseForbidden("You are not authorized to remove material.")
+        return HttpResponseForbidden("You are not authorized to remove a required tag.")
 
     class_obj = get_object_or_404(Class, slug=slug)
-    item = get_object_or_404(Item, id=item_id)
-    class_obj.items.remove(item)
+    tag = get_object_or_404(Tag, id=tag_id)
+    class_obj.required_tags.remove(tag)
     return redirect('class_detail', slug=slug)
+
+
+@login_required
+def add_required_tag(request, slug):
+    if request.user.profile.userRole != 1:
+        return HttpResponseForbidden("You are not authorized to add a required tag.")
+
+    class_obj = get_object_or_404(Class, slug=slug)
+
+    if request.method == "POST":
+        tag_id = request.POST.get("tag_id")
+        if tag_id:
+            tag = get_object_or_404(Tag, id=tag_id)
+            class_obj.required_tags.add(tag)
+        return redirect('class_detail', slug=slug)
+
+    return redirect('class_detail', slug=slug)
+
+
+@login_required
+def item_post(request):
+    if request.user.profile.userRole != 1:
+        return HttpResponseForbidden("You are not authorized to post material.")
+
+    if request.method == "POST":
+        identifier = request.POST.get("identifier", "").strip()
+        is_available = request.POST.get("is_available") == "on"
+        tag_ids = request.POST.getlist("tags")  # Get a list of tag IDs
+        new_item = Item.objects.create(identifier=identifier, is_available=is_available)
+        if tag_ids:
+            tags = Tag.objects.filter(id__in=tag_ids)
+            new_item.tags.add(*tags)
+        return redirect('home_page')
+
+    return redirect('home_page')

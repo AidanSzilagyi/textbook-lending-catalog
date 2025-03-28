@@ -5,17 +5,17 @@ from django.dispatch import receiver
 
 from django.db import models
 
-class Class(models.Model):
+class Tag(models.Model):
     name = models.CharField(max_length=255)
-    description = models.TextField()
-    slug = models.SlugField(unique=True)
-    items = models.ManyToManyField('Item', related_name='classes', blank=True)
 
     def __str__(self):
         return self.name
 
-class Tag(models.Model):
+class Class(models.Model):
     name = models.CharField(max_length=255)
+    description = models.TextField()
+    slug = models.SlugField(unique=True)
+    required_tags = models.ManyToManyField(Tag, related_name='required_by', blank=True)
 
     def __str__(self):
         return self.name
