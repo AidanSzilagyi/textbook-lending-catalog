@@ -10,7 +10,7 @@
       max-height: 300px;
     }
     /* Hide forms initially */
-    #classForm, #tagForm {
+    #classForm { 
       display: none;
       margin-top: 20px;
     }
@@ -31,7 +31,7 @@
     <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
     {% if user.profile.userRole == 1 %}
       <button id="addClassBtn" class="btn btn-success ms-2">Add Class</button>
-      <button id="addTagBtn" class="btn btn-info ms-2">Add Tag</button>
+      <!-- Removed Add Tag button from this page -->
     {% endif %}
   </div>
   
@@ -50,19 +50,6 @@
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
         <button type="button" id="cancelClassBtn" class="btn btn-secondary ms-2">Cancel</button>
-      </form>
-    </div>
-
-    <!-- Hidden form for creating a new Tag -->
-    <div id="tagForm" class="card p-4 mt-3">
-      <form method="POST" action="{% url 'tag_create' %}">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="tagName" class="form-label">Tag Name</label>
-          <input type="text" name="tag_name" id="tagName" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit Tag</button>
-        <button type="button" id="cancelTagBtn" class="btn btn-secondary ms-2">Cancel</button>
       </form>
     </div>
   {% endif %}
@@ -90,10 +77,6 @@
       const cancelClassBtn = document.getElementById("cancelClassBtn");
       const classForm = document.getElementById("classForm");
 
-      const addTagBtn = document.getElementById("addTagBtn");
-      const cancelTagBtn = document.getElementById("cancelTagBtn");
-      const tagForm = document.getElementById("tagForm");
-
       if(addClassBtn){
         addClassBtn.addEventListener("click", function(){
           classForm.style.display = "block";
@@ -102,16 +85,6 @@
       if(cancelClassBtn){
         cancelClassBtn.addEventListener("click", function(){
           classForm.style.display = "none";
-        });
-      }
-      if(addTagBtn){
-        addTagBtn.addEventListener("click", function(){
-          tagForm.style.display = "block";
-        });
-      }
-      if(cancelTagBtn){
-        cancelTagBtn.addEventListener("click", function(){
-          tagForm.style.display = "none";
         });
       }
     });

@@ -24,91 +24,63 @@
       <p>{{ class_obj.description }}</p>
     </section>
     <section>
-      <h3>Required Items</h3>
-      {% if required_items %}
-      <div class="list-group">
-        {% for item in required_items %}
-          <div class="list-group-item d-flex justify-content-between align-items-center">
-            <div>
-              <h5 class="mb-1">{{ item.identifier }}</h5>
-              <p class="mb-1">
-                <small>
-                  Tags:
-                  {% for tag in item.tags.all %}
-                    {{ tag.name }}{% if not forloop.last %}, {% endif %}
-                  {% endfor %}
-                </small>
-              </p>
-              {% if item.is_available %}
-                <span class="badge bg-success">Available</span>
-              {% else %}
-                <span class="badge bg-danger">Not Available</span>
+      <h3>Required Materials</h3>
+      {% if required_tags %}
+        <div class="list-group">
+          {% for tag in required_tags %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <span>{{ tag.name }}</span>
+              {% if user.profile.userRole == 1 %}
+                <a href="{% url 'unlink_required_tag' class_obj.slug tag.id %}" class="unlink-btn" title="Remove this required tag">X</a>
               {% endif %}
             </div>
-            {% if user.profile.userRole == 1 %}
-              <!-- Unlink button for librarians -->
-              <a href="{% url 'unlink_material' class_obj.slug item.id %}" class="unlink-btn" title="Remove material from this class">X</a>
-            {% endif %}
-          </div>
-        {% endfor %}
-      </div>
+          {% endfor %}
+        </div>
       {% else %}
-        <p>No required items for this class.</p>
+        <p>No required materials for this class.</p>
       {% endif %}
     </section>
+    
+    {% if user.profile.userRole == 1 %}
+      <!-- Button to toggle the Add Required Tag form -->
+      <button id="addTagBtn" class="btn btn-info mt-3">Add Required Tag</button>
+      <!-- Hidden form to add a required tag -->
+      <div id="tagForm" class="card p-4 mt-3" style="display: none;">
+        <form method="POST" action="{% url 'add_required_tag' class_obj.slug %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="tagSelect" class="form-label">Select Tag</label>
+            <select name="tag_id" id="tagSelect" class="form-select">
+              {% for tag in available_tags %}
+                <option value="{{ tag.id }}">{{ tag.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Tag</button>
+          <button type="button" id="cancelTagBtn" class="btn btn-secondary ms-2">Cancel</button>
+        </form>
+      </div>
+    {% endif %}
+    
   </main>
   <footer class="mt-4">
     <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
-    {% if user.profile.userRole == 1 %}
-      <!-- Button to toggle the material creation form -->
-      <button id="addMaterialBtn" class="btn btn-success ms-2">Add Material</button>
-    {% endif %}
   </footer>
-  
-  {% if user.profile.userRole == 1 %}
-    <!-- Hidden form for creating a new Item -->
-    <div id="materialForm" class="card p-4 mt-3" style="display: none;">
-      <form method="POST" action="{% url 'material_create' class_obj.slug %}">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="identifier" class="form-label">Identifier</label>
-          <input type="text" name="identifier" id="identifier" class="form-control" required>
-        </div>
-        <div class="mb-3 form-check">
-          <input type="checkbox" name="is_available" id="is_available" class="form-check-input">
-          <label class="form-check-label" for="is_available">Available</label>
-        </div>
-        <div class="mb-3">
-          <label for="tags" class="form-label">Tags</label>
-          <select name="tags" id="tags" class="form-select" multiple>
-            {% for tag in tags %}
-              <option value="{{ tag.id }}">{{ tag.name }}</option>
-            {% endfor %}
-          </select>
-          <small class="form-text text-muted">
-            Hold down Ctrl (Windows) or Command (Mac) to select multiple options.
-          </small>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-        <button type="button" id="cancelMaterialBtn" class="btn btn-secondary ms-2">Cancel</button>
-      </form>
-    </div>
-  {% endif %}
   
   <script>
     document.addEventListener("DOMContentLoaded", function(){
-      const addMaterialBtn = document.getElementById("addMaterialBtn");
-      const cancelMaterialBtn = document.getElementById("cancelMaterialBtn");
-      const materialForm = document.getElementById("materialForm");
+      const addTagBtn = document.getElementById("addTagBtn");
+      const cancelTagBtn = document.getElementById("cancelTagBtn");
+      const tagForm = document.getElementById("tagForm");
 
-      if(addMaterialBtn){
-        addMaterialBtn.addEventListener("click", function(){
-          materialForm.style.display = "block";
+      if(addTagBtn){
+        addTagBtn.addEventListener("click", function(){
+          tagForm.style.display = "block";
         });
       }
-      if(cancelMaterialBtn){
-        cancelMaterialBtn.addEventListener("click", function(){
-          materialForm.style.display = "none";
+      if(cancelTagBtn){
+        cancelTagBtn.addEventListener("click", function(){
+          tagForm.style.display = "none";
         });
       }
     });
