@@ -41,6 +41,8 @@ class Profile(models.Model):
         return self.user.username
 
 class Collections(models.Model):
+    PUBLIC = 'public'
+    PRIVATE = 'private'
     VISIBILITY_CHOICES = [
         (PUBLIC, 'Public'),
         (PRIVATE, 'Private'),
