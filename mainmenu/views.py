@@ -17,7 +17,7 @@ def index(request):
 
 def logout_view(request):
     logout(request)
-    return redirect("/login")
+    return redirect("index")
 
 
 def home_page_router(request):
@@ -28,7 +28,7 @@ def home_page_router(request):
     elif request.user.profile.userRole == 0:
         return home_page(request)
 
-
+@login_required
 def home_page(request):
     return render(request, "home_page.html")
 
