@@ -38,7 +38,7 @@ class PatronProfileViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
     def test_not_logged_in(self):
         response = self.client.get(self.url)
-        self.assertRedirects(response, '/accounts/login/?next=/home_page/', status_code=302, target_status_code=200)
+        self.assertRedirects(response, '/accounts/login/?next=/homepage/', status_code=302, target_status_code=200)
 
 class LibrarianHomePageTests(TestCase):
     def setUp(self):
@@ -57,12 +57,12 @@ class LibrarianHomePageTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse('lent_items'))
         self.assertEqual(response.status_code, 200)
-    def test_logged_in_marketplaces(self):
+    def test_logged_in_marketplace(self):
         self.client.force_login(self.user)
-        response = self.client.get(reverse('marketplaces'))
+        response = self.client.get(reverse('marketplace'))
         self.assertEqual(response.status_code, 200)
     def test_not_logged_in(self):
         response = self.client.get(reverse('librarian_settings'))
-        self.assertRedirects(response, '/accounts/login/?next=/home_page/', status_code=302, target_status_code=200)
+        self.assertRedirects(response, '/accounts/login/?next=/librarian_settings/', status_code=302, target_status_code=200)
 
 
