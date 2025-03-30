@@ -5,6 +5,14 @@
   <title>{{ class_obj.name }} - Class Details</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .unlink-btn {
+      color: red;
+      font-weight: bold;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+  </style>
 </head>
 <body class="container mt-5">
   <header class="fixed-top bg-light text-center py-3">
@@ -16,38 +24,67 @@
       <p>{{ class_obj.description }}</p>
     </section>
     <section>
-      <h3>Required Items</h3>
-      {% if required_items %}
-      <div class="list-group">
-        {% for item in required_items %}
-          <div class="list-group-item">
-            <h5 class="mb-1">{{ item.identifier }}</h5>
-            <p class="mb-1">
-              <small>
-                Tags:
-                {% for tag in item.tags.all %}
-                  {% if tag.class_obj.id == class_obj.id %}
-                    {{ tag.name }}{% if not forloop.last %}, {% endif %}
-                  {% endif %}
-                {% endfor %}
-              </small>
-            </p>
-            {% if item.is_available %}
-              <span class="badge bg-success">Available</span>
-            {% else %}
-              <span class="badge bg-danger">Not Available</span>
-            {% endif %}
-          </div>
-        {% endfor %}
-      </div>
+      <h3>Required Materials</h3>
+      {% if required_tags %}
+        <div class="list-group">
+          {% for tag in required_tags %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <span>{{ tag.name }}</span>
+              {% if user.profile.userRole == 1 %}
+                <a href="{% url 'unlink_required_tag' class_obj.slug tag.id %}" class="unlink-btn" title="Remove this required tag">X</a>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
       {% else %}
-        <p>No required items for this class.</p>
+        <p>No required materials for this class.</p>
       {% endif %}
     </section>
+    
+    {% if user.profile.userRole == 1 %}
+      <!-- Button to toggle the Add Required Tag form -->
+      <button id="addTagBtn" class="btn btn-info mt-3">Add Required Tag</button>
+      <!-- Hidden form to add a required tag -->
+      <div id="tagForm" class="card p-4 mt-3" style="display: none;">
+        <form method="POST" action="{% url 'add_required_tag' class_obj.slug %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="tagSelect" class="form-label">Select Tag</label>
+            <select name="tag_id" id="tagSelect" class="form-select">
+              {% for tag in available_tags %}
+                <option value="{{ tag.id }}">{{ tag.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Tag</button>
+          <button type="button" id="cancelTagBtn" class="btn btn-secondary ms-2">Cancel</button>
+        </form>
+      </div>
+    {% endif %}
+    
   </main>
-  <footer class="mt-4">`
+  <footer class="mt-4">
     <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
   </footer>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+      const addTagBtn = document.getElementById("addTagBtn");
+      const cancelTagBtn = document.getElementById("cancelTagBtn");
+      const tagForm = document.getElementById("tagForm");
+
+      if(addTagBtn){
+        addTagBtn.addEventListener("click", function(){
+          tagForm.style.display = "block";
+        });
+      }
+      if(cancelTagBtn){
+        cancelTagBtn.addEventListener("click", function(){
+          tagForm.style.display = "none";
+        });
+      }
+    });
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
