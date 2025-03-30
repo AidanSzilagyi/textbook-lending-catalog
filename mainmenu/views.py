@@ -38,14 +38,16 @@ def librarian_home_page(request):
 
 @login_required
 def profile(request):
+    print("here")
     return render(request, "profile.html")
 
+@login_required
 def upload_pfp(request):
     if request.method == 'POST' and request.FILES.get('pfp'):
         profile = request.user.profile
         profile.profile_picture = request.FILES['pfp']
         profile.save()
-    return redirect('profile')
+    return redirect('/profile/')
 
 @login_required
 def messaging(request):
