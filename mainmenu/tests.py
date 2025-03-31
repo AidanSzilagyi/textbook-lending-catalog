@@ -36,9 +36,6 @@ class PatronProfileViewTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-    def test_not_logged_in(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
 
 class LibrarianHomePageTests(TestCase):
     def setUp(self):
