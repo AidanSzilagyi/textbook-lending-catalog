@@ -58,6 +58,21 @@ class LibrarianHomePageTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse('marketplace'))
         self.assertEqual(response.status_code, 200)
+    def test_logged_in_borrowed_items(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('borrowed_items'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_profile(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('profile'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_required_materials(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('required_materials'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_add_tag(self):
+        self.client.force_login(self.user)
+
     def test_not_logged_in(self):
         response = self.client.get(reverse('librarian_settings'))
         self.assertRedirects(response, '/accounts/login/?next=/librarian_settings/', status_code=302, target_status_code=200)

@@ -83,6 +83,10 @@ def librarian_settings(request):
     }
     return render(request, "librarian_settings.html", context )
 
+@login_required
+def add_tag(request):
+    return render(request, "add_tag.html")
+
 
 def class_detail(request, slug):
     class_obj = get_object_or_404(Class, slug=slug)
@@ -245,6 +249,7 @@ def add_required_tag(request, slug):
         return redirect('class_detail', slug=slug)
 
     return redirect('class_detail', slug=slug)
+
 
 
 @login_required
