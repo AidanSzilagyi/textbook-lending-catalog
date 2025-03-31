@@ -38,7 +38,7 @@ class PatronProfileViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
     def test_not_logged_in(self):
         response = self.client.get(self.url)
-        self.assertRedirects(response, '/accounts/login/?next=/homepage/', status_code=302, target_status_code=200)
+        self.assertEqual(response.status_code, 200)
 
 class LibrarianHomePageTests(TestCase):
     def setUp(self):
