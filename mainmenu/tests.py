@@ -58,8 +58,51 @@ class LibrarianHomePageTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(reverse('marketplace'))
         self.assertEqual(response.status_code, 200)
+    def test_logged_in_borrowed_items(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('borrowed_items'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_profile(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('profile'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_required_materials(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('required_materials'))
+        self.assertEqual(response.status_code, 200)
     def test_not_logged_in(self):
         response = self.client.get(reverse('librarian_settings'))
         self.assertRedirects(response, '/accounts/login/?next=/librarian_settings/', status_code=302, target_status_code=200)
 
-
+class PatronHomePageTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        User = get_user_model()
+        self.user, _ = User.objects.get_or_create(username='user4')
+        self.user.set_password('pwd')
+        self.user.save()
+        self.profile, _ = Profile.objects.get_or_create(user=self.user, defaults={'userRole': 0})
+        self.url = reverse('home_page')
+    def test_logged_in_lent_items(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('lent_items'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_marketplace(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('marketplace'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_borrowed_items(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('borrowed_items'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_profile(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('profile'))
+        self.assertEqual(response.status_code, 200)
+    def test_logged_in_required_materials(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('required_materials'))
+        self.assertEqual(response.status_code, 200)
+    def test_not_logged_in(self):
+        response = self.client.get(reverse('lent_items'))
+        self.assertRedirects(response, '/accounts/login/?next=/librarian_settings/', status_code=302, target_status_code=200)
