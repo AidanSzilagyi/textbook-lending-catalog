@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  {% load socialaccount %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Dashboard</title>
@@ -43,15 +44,11 @@
           <li class="nav-item"><a class="nav-link" href="{% url 'lent_items' %}">Lent Items</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'marketplace' %}">Marketplace</a></li>
           <li class="nav-item"><a class="nav-link" href="{% url 'required_materials' %}">Required Materials</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuButton" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              Account
-            </a>
-            <ul class="dropdown-menu" style="width: 100px !important; min-width: 100px !important;" aria-labelledby="dropdownMenuButton">
-              <li style="width: 100px;"><a class="dropdown-item" style="width: 98.5px;" href="{% url 'profile' %}">Profile</a></li>
-              <li style="width: 100px;"><a class="dropdown-item" style="width: 98.5px;" href="{% url 'librarian_settings' %}">Settings</a></li>
-              <li style="width: 100px;"><a class="dropdown-item" style="width: 98.5px;" href="{% url 'logout' %}">Logout</a></li>
-            </ul>
+          <li class="nav-item">
+            <form action="{% provider_login_url 'google' %}" method="post">
+              {% csrf_token %}
+              <button type="submit">Log In</button>
+            </form>
           </li>
         </ul>
       </div>
@@ -73,61 +70,6 @@
       </div>
     </div>
     
-    {% if user.profile.userRole == 1 %}
-      <!-- Button to toggle the Post Material form (only for librarians) -->
-      <div class="mt-4">
-        <button id="postItemBtn" class="btn btn-primary">Post Material</button>
-      </div>
-      
-      <!-- Button to toggle the Add Tag form (only for librarians) -->
-      <div class="mt-2">
-        <button id="addTagBtn" class="btn btn-info">Add Tag</button>
-      </div>
-    {% endif %}
-    
-    {% if user.profile.userRole == 1 %}
-      <!-- Hidden form for posting a new material (Item) -->
-      <div id="itemForm" class="card p-4 mt-3">
-        <form method="POST" action="{% url 'item_post' %}">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label for="identifier" class="form-label">Identifier</label>
-            <input type="text" name="identifier" id="identifier" class="form-control" required>
-          </div>
-          <div class="mb-3 form-check">
-            <input type="checkbox" name="is_available" id="is_available" class="form-check-input">
-            <label class="form-check-label" for="is_available">Available</label>
-          </div>
-          <div class="mb-3">
-            <label for="tagSelect" class="form-label">Select Tags</label>
-            <select name="tags" id="tagSelect" class="form-select" multiple>
-              {% for tag in tags %}
-                <option value="{{ tag.id }}">{{ tag.name }}</option>
-              {% endfor %}
-            </select>
-            <small class="form-text text-muted">
-              Hold down Ctrl (Windows) or Command (Mac) to select multiple options.
-            </small>
-          </div>
-          <button type="submit" class="btn btn-primary">Submit Material</button>
-          <button type="button" id="cancelItemBtn" class="btn btn-secondary ms-2">Cancel</button>
-        </form>
-      </div>
-
-        
-      <!-- Hidden form for creating a new Tag -->
-      <div id="tagForm" class="card p-4 mt-3">
-        <form method="POST" action="{% url 'tag_create' %}">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label for="tagName" class="form-label">Tag Name</label>
-            <input type="text" name="tag_name" id="tagName" class="form-control" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Submit Tag</button>
-          <button type="button" id="cancelTagBtn" class="btn btn-secondary ms-2">Cancel</button>
-        </form>
-      </div>
-    {% endif %}
 
     <!-- Scrollable container listing all Items -->
     <div class="scroll-container mt-4">

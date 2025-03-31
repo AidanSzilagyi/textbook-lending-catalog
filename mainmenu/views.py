@@ -15,20 +15,22 @@ def index(request):
         info = TestObject.objects.get(pk=1)
     except TestObject.DoesNotExist:
         return render(request, "mainmenu/index.html", {"info": "This text only appears locally"})
-    return render(request, "mainmenu/index.html", {"info": info.important_text})
+    return render(request, "mainmenu/index.html", {"info": info.important_text})    
 
 def logout_view(request):
     logout(request)
     return redirect("index")
 
-
 def home_page_router(request):
-    if not request.user.is_authenticated:
-        return home_page(request)
-    elif request.user.profile.userRole == 1:
-        return librarian_home_page(request)
-    elif request.user.profile.userRole == 0:
-        return home_page(request)
+    if request.user.is_authenticated:
+        if request.user.profile.userRole == 0:
+            return home_page(request)
+        elif request.user.profile.userRole == 1:
+            return librarian_home_page(request)
+    return unauth_home_page(request)
+
+def unauth_home_page(request):
+    return render(request, 'unauth_home.html')
 
 @login_required
 def home_page(request):

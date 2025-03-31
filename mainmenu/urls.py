@@ -2,14 +2,15 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.index, name="index"),
-    path("login/", views.index, name="login"),
+    path("", views.home_page_router, name="index"),
     path("logout/", views.logout_view, name="logout"),
-    path("homepage/", views.home_page, name='home_page'),
+    path("homepage/", views.home_page_router, name='home_page'),
     path('classes/<slug:slug>/', views.class_detail, name='class_detail'),
     path('classes/<slug:slug>/add_required_tag/', views.add_required_tag, name='add_required_tag'),
     path('classes/<slug:slug>/unlink_required_tag/<int:tag_id>/', views.unlink_required_tag, name='unlink_required_tag'),
     path("profile/", views.profile, name='profile'),
+    path('classes/create/', views.class_create, name='class_create'),
+    path('classes/<slug:slug>/material_create/', views.material_create, name='material_create'),
     path("messaging/", views.messaging, name='messaging'),
     path("lent_items/", views.lent_items, name='lent_items'),
     path("borrowed_items/", views.borrowed_items, name='borrowed_items'),
@@ -17,10 +18,11 @@ urlpatterns = [
     path("librarian_home_page/", views.librarian_home_page, name='librarian_home_page'),
     path("homepage/", views.home_page_router, name='home_page_router'),
     path("required_materials/", views.required_materials, name='required_materials'),
-    path('classes/<slug:slug>/', views.class_detail, name='class_detail'),
     path("upload_pfp/", views.upload_pfp, name="upload_pfp"),
     path("librarian_settings/", views.librarian_settings, name='librarian_settings'),
     path("patron_to_librarian/", views.patron_to_librarian, name='patron_to_librarian'),
     path('add-item/', views.add_item, name='add_item'),
     path('add-item-submit/', views.add_item_submit, name='add_item_submit'),
+    path('tag_create/', views.tag_create, name='tag_create'),
+    path('item_post/', views.item_post, name='item_post'),
 ]
