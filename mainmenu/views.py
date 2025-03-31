@@ -83,9 +83,6 @@ def librarian_settings(request):
     }
     return render(request, "librarian_settings.html", context )
 
-@login_required
-def add_tag(request):
-    return render(request, "add_tag.html")
 
 
 def class_detail(request, slug):
