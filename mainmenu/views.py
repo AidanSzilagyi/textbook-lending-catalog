@@ -273,7 +273,7 @@ def add_collection(request):
             collection.creator = request.user.profile  # Assign logged-in user as creator
             collection.save()
             form.save_m2m()  # Save ManyToMany relationships
-            return redirect('homepage')  # Redirect to homepage after submission
+            return redirect('home_page')  # Redirect to homepage after submission
 
     else:
         form = CollectionForm()

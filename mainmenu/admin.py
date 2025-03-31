@@ -2,7 +2,7 @@ from django.contrib import admin
 
 
 # Register your models here.
-from .models import TestObject,Profile, Class, Tag, Item
+from .models import TestObject, Profile, Class, Tag, Item, Collections
 
 admin.site.register(TestObject)
 admin.site.register(Class)
@@ -37,3 +37,4 @@ class ProfileAdmin(admin.ModelAdmin):
     user_password.short_description = 'Password'
 
 admin.site.register(Profile, ProfileAdmin)
+admin.site.register(Collections)
