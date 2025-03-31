@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -174,9 +175,15 @@ AUTHENTICATION_BACKENDS = {
     "allauth.account.auth_backends.AuthenticationBackend"
 }
 
-LOGIN_REDIRECT_URL = "/homepage/"
-LOGOUT_REDIRECT_URL = "/"
 
+LOGIN_REDIRECT_URL = "/homepage/"
+LOGOUT_REDIRECT_URL = ""
+
+ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_AUTO_SIGNUP = True
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 
 # Amazon S3 and media files
 MEDIA_URL = '/media/'
@@ -199,5 +206,43 @@ STORAGES = {
     # not needed for now
     "staticfiles": {
         "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
+    },
+}
+
+import sys
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,  # keep Django's default logging
+    'formatters': {
+        'verbose': {
+            'format': '[{levelname}] {asctime} {name} - {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,  # Show logs in the terminal
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        # Show logs from allauth
+        'allauth': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        # Show logs from Django request handling
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+    },
+    'root': {
+    'handlers': ['console'],
+    'level': 'DEBUG',
     },
 }
