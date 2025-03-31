@@ -4,7 +4,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
 
-from .models import TestObject, Profile, Item, Class, Tag
+from .models import TestObject, Profile, Item, Class, Tag, Collections
+from .forms import CollectionForm
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
@@ -263,3 +264,19 @@ def item_post(request):
         return redirect('home_page')
 
     return redirect('home_page')
+
+def add_collection(request):
+    if request.method == "POST":
+        form = CollectionForm(request.POST)
+        if form.is_valid():
+            collection = form.save(commit=False)
+            collection.creator = request.user.profile  # Assign logged-in user as creator
+            collection.save()
+            form.save_m2m()  # Save ManyToMany relationships
+            return redirect('homepage')  # Redirect to homepage after submission
+
+    else:
+        form = CollectionForm()
+
+    collections = Collections.objects.all()
+    return render(request, 'homepage.html', {'form': form, 'collections': collections})

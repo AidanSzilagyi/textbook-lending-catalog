@@ -188,4 +188,35 @@
       }
     });
   </script>
+
+<!-- New Collection Button -->
+<div class="mt-4">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCollectionModal">
+        Add New Collection
+    </button>
+</div>
+
+<!-- Bootstrap Modal for Adding New Collection -->
+<div class="modal fade" id="addCollectionModal" tabindex="-1" aria-labelledby="addCollectionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'add_collection' %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Save Collection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 </html>
+
+
