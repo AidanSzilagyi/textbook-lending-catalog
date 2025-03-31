@@ -116,4 +116,64 @@
     });
   </script>
 </body>
+
+<!-- New Collection Button -->
+<div class="mt-4">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCollectionModal">
+        Add New Collection
+    </button>
+</div>
+
+<!-- Bootstrap Modal for Adding New Collection -->
+<div class="modal fade" id="addCollectionModal" tabindex="-1" aria-labelledby="addCollectionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'add_collection' %}">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Collection Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="items" class="form-label">Select Items</label>
+                        <select class="form-select" id="items" name="items" multiple>
+                            {% for item in items %}
+                                <option value="{{ item.id }}">{{ item.identifier }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple items.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="visibility" class="form-label">Visibility</label>
+                        <select class="form-select" id="visibility" name="visibility">
+                            {% if user.profile.userRole == 0 %}
+                                <option value="public" selected>Public</option>
+                            {% else %}
+                                <option value="public" selected>Public</option>
+                                <option value="private">Private</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Save Collection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 </html>

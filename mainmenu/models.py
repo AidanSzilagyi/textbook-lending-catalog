@@ -66,6 +66,13 @@ class Collections(models.Model):
         if self.creator.userRole == 0:  # If creator is a patron
             self.visibility = self.PUBLIC  # Force visibility to Public
         super().save(*args, **kwargs)
+        # If the collection is private, check the items
+        if self.visibility == self.PRIVATE:
+            # Check if any of the items in this collection are already in another private collection
+            for item in self.items.all():
+                # Query to find other collections with the same item and private visibility
+                if Collections.objects.filter(items=item, visibility=self.PRIVATE).exclude(id=self.id).exists():
+                    raise ValidationError(f"Item '{item.identifier}' is already in another private collection.")
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
