@@ -4,9 +4,10 @@ from django.contrib import admin
 # Register your models here.
 from .models import TestObject,Profile, Class, Tag, Item
 
+from mainmenu.models import Tag
+
 admin.site.register(TestObject)
 admin.site.register(Class)
-admin.site.register(Tag)
 admin.site.register(Item)
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -37,3 +38,8 @@ class ProfileAdmin(admin.ModelAdmin):
     user_password.short_description = 'Password'
 
 admin.site.register(Profile, ProfileAdmin)
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    pass
