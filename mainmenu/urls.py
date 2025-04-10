@@ -25,4 +25,5 @@ urlpatterns = [
     path('add-item-submit/', views.add_item_submit, name='add_item_submit'),
     path('tag_create/', views.tag_create, name='tag_create'),
     path('item_post/', views.item_post, name='item_post'),
+    path('items/<uuid:uuid>/', views.item_detail, name='item_detail'),
 ]
