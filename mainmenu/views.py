@@ -62,7 +62,6 @@ def librarian_home_page(request):
 
 @login_required
 def profile(request):
-    print("here")
     return render(request, "profile.html")
 
 @login_required

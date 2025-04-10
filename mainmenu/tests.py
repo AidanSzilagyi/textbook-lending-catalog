@@ -105,4 +105,4 @@ class PatronHomePageTests(TestCase):
         self.assertEqual(response.status_code, 200)
     def test_not_logged_in(self):
         response = self.client.get(reverse('lent_items'))
-        self.assertRedirects(response, '/accounts/login/?next=/librarian_settings/', status_code=302, target_status_code=200)
+        self.assertRedirects(response, '/accounts/login/?next=/lent_items/', status_code=302, target_status_code=200)
