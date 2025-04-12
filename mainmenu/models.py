@@ -20,14 +20,6 @@ class Class(models.Model):
         return self.name
 
 
-class Collection(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.name
-
-
 class ItemImage(models.Model):
     image = models.ImageField(upload_to='item_images/')
     caption = models.CharField(max_length=255, blank=True)
@@ -54,7 +46,7 @@ class Item(models.Model):
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
-    collections = models.ManyToManyField(Collection, related_name='items', blank=True)
+    collections = models.ManyToManyField(Collection, related_name='items_of', blank=True)
 
     def __str__(self):
         status_display = dict(self.STATUS_CHOICES).get(self.status, self.status)
@@ -73,7 +65,7 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
-class Collections(models.Model):
+class Collection(models.Model):
     PUBLIC = 'public'
     PRIVATE = 'private'
     VISIBILITY_CHOICES = [
@@ -82,7 +74,7 @@ class Collections(models.Model):
     ]
     title = models.CharField(max_length=255)
     description = models.TextField(blank = True)
-    items = models.ManyToManyField(Item, related_name='collections')
+    items = models.ManyToManyField(Item, related_name='collections_of')
     creator = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name = "collections")
     visibility = models.CharField(
         max_length=8,
