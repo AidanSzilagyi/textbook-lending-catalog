@@ -12,6 +12,7 @@ class CollectionForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter description'}),
             'items': forms.SelectMultiple(attrs={'class': 'form-select'}),
             'visibility': forms.Select(attrs={'class': 'form-select'}),
+        }
 
 from .models import Item, Tag
 
