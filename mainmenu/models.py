@@ -46,7 +46,7 @@ class Item(models.Model):
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
-    collections = models.ManyToManyField(Collection, related_name='items_of', blank=True)
+    collections = models.ManyToManyField('Collection', related_name='items_of', blank=True)
 
     def __str__(self):
         status_display = dict(self.STATUS_CHOICES).get(self.status, self.status)
