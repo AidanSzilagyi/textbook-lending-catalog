@@ -4,8 +4,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
 
-from .models import TestObject, Profile, Item, Class, Tag, Collections
+
+from .models import TestObject, Profile, Item, Class, Tag, Collections, ItemImage
 from .forms import CollectionForm
+from .forms import ItemForm
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
@@ -43,11 +45,26 @@ def home_page(request):
 
 @login_required
 def librarian_home_page(request):
-    return render(request, "librarian_home_page.html")
+    if request.method == 'POST':
+        form = ItemForm(request.POST)
+        if form.is_valid():
+            item = form.save()
+            for f in request.FILES.getlist('images'):
+                img = ItemImage.objects.create(image=f)
+                item.images.add(img)
+            return redirect('librarian_home_page')
+    else:
+        form = ItemForm()
+
+    items = Item.objects.all().order_by('-id')
+
+    return render(request, "librarian_home_page.html", {
+        'form': form,
+        'items': items,
+    })
 
 @login_required
 def profile(request):
-    print("here")
     return render(request, "profile.html")
 
 @login_required
@@ -162,9 +179,9 @@ def tag_create(request):
         tag_name = request.POST.get("tag_name", "").strip()
         if tag_name:
             Tag.objects.create(name=tag_name)
-        return redirect('required_materials')
+        return redirect('librarian_home_page')
 
-    return redirect('required_materials')
+    return redirect('librarian_home_page')
 
 @login_required
 def add_item_submit(request):
@@ -250,18 +267,19 @@ def add_required_tag(request, slug):
 
 @login_required
 def item_post(request):
-    if request.user.profile.userRole != 1:
-        return HttpResponseForbidden("You are not authorized to post material.")
-
-    if request.method == "POST":
-        identifier = request.POST.get("identifier", "").strip()
-        is_available = request.POST.get("is_available") == "on"
-        tag_ids = request.POST.getlist("tags")  # Get a list of tag IDs
-        new_item = Item.objects.create(identifier=identifier, is_available=is_available)
-        if tag_ids:
-            tags = Tag.objects.filter(id__in=tag_ids)
-            new_item.tags.add(*tags)
-        return redirect('home_page')
+    if request.method == 'POST':
+        form = ItemForm(request.POST)
+        if form.is_valid():
+            item = form.save()
+            for f in request.FILES.getlist('images'):
+                img = ItemImage.objects.create(image=f)
+                item.images.add(img)
+            return redirect('librarian_home_page')
+    else:
+        form = ItemForm()
+    return render(request, 'librarian_home_page.html', {
+        'form': form
+    })
 
     return redirect('home_page')
 
@@ -280,3 +298,11 @@ def add_collection(request):
 
     collections = Collections.objects.all()
     return render(request, 'homepage.html', {'form': form, 'collections': collections})
+=======
+@login_required
+def item_detail(request, uuid):
+    item = get_object_or_404(Item, uuid=uuid)
+    return render(request, 'item_detail.html', {
+        'item': item
+    })
+
