@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.template.defaultfilters import slugify
 
 
-from .models import TestObject, Profile, Item, Class, Tag, Collections, ItemImage
+from .models import TestObject, Profile, Item, Class, Tag, Collection, ItemImage
 from .forms import CollectionForm
 from .forms import ItemForm
 from django.contrib.auth import logout
@@ -294,7 +294,7 @@ def add_collection(request):
     else:
         form = CollectionForm()
 
-    collections = Collections.objects.all()
+    collections = Collection.objects.all()
     return render(request, 'homepage.html', {'form': form, 'collections': collections})
 
 @login_required
