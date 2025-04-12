@@ -296,7 +296,7 @@ def add_collection(request):
 
     collections = Collections.objects.all()
     return render(request, 'homepage.html', {'form': form, 'collections': collections})
-=======
+
 @login_required
 def item_detail(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
