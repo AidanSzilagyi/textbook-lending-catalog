@@ -281,8 +281,6 @@ def item_post(request):
         'form': form
     })
 
-    return redirect('home_page')
-
 def add_collection(request):
     if request.method == "POST":
         form = CollectionForm(request.POST)
