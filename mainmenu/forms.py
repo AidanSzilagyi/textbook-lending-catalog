@@ -1,11 +1,11 @@
 from django import forms
 from .models import *
 from django import forms
-from .models import Collections
+from .models import Collection
 
 class CollectionForm(forms.ModelForm):
     class Meta:
-        model = Collections
+        model = Collection
         fields = ['title', 'description', 'items', 'visibility']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter collection title'}),
