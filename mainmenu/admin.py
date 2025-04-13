@@ -2,13 +2,14 @@ from django.contrib import admin
 
 
 # Register your models here.
-from .models import TestObject,Profile, Class, Tag, Item
+from .models import TestObject, Profile, Class, Tag, Item, NewCollection
 
 from mainmenu.models import Tag
 
 admin.site.register(TestObject)
 admin.site.register(Class)
 admin.site.register(Item)
+admin.site.register(NewCollection)
 
 class ProfileAdmin(admin.ModelAdmin):
     # Define which fields to display in the admin list view

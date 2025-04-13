@@ -3,12 +3,13 @@ from django.contrib.messages.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
-from .forms import ItemForm
-from .models import TestObject, Profile, Item, Class, Tag, ItemImage
+from .forms import ItemForm, CollectionForm
+from .models import TestObject, Profile, Item, Class, Tag, ItemImage, NewCollection
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
 from django.core.files.storage import default_storage
+from .models import NewCollection, CollectionAccessRequest
 
 def index(request):
     try:
@@ -284,3 +285,50 @@ def item_detail(request, uuid):
     return render(request, 'item_detail.html', {
         'item': item
     })
+
+def collection(request):
+
+    if request.method == "POST":
+        form = CollectionForm(request.POST)
+        if form.is_valid():
+            collection = form.save(commit=False)
+            collection.creator = request.user.profile  # Assign logged-in user as creator
+            collection.save()
+            form.save_m2m()  # Save ManyToMany relationships
+            return render(request, "collection.html", {'form': form, 'collections': collection}) # Redirect to homepage after submission
+
+    else:
+        form = CollectionForm()
+
+    collections = NewCollection.objects.all()
+    user_collections = NewCollection.objects.filter(creator =request.user.profile)
+
+    return render(request, 'collection.html', {'form': form, 'collections': collections, 'user_collections': user_collections,
+        'public_collections': public_collections})
+
+def collection_detail(request, collection_id):
+    collection = get_object_or_404(Collection, pk=collection_id)
+    items = collection.items.all()  # if you have a related_name like 'items' in FK
+    return render(request, 'collection_detail.html', {
+        'collection': collection,
+        'items': items,
+    })
+
+def edit_collection(request, collection_id):
+    collection = get_object_or_404(Collection, pk=collection_id)
+
+    if request.method == 'POST':
+        form = CollectionForm(request.POST, instance=collection)
+        if form.is_valid():
+            form.save()
+            return redirect('collection_detail', collection_id=collection.id)
+    else:
+        form = CollectionForm(instance=collection)
+
+    return render(request, 'collection_detail.html', {'form': form, 'collection': collection})
+
+@login_required
+def request_access(request, collection_id):
+    collection = get_object_or_404(Collection, pk=collection_id)
+    CollectionAccessRequest.objects.get_or_create(user=request.user, collection=collection)
+    return redirect('collection_detail', collection_id=collection.id)

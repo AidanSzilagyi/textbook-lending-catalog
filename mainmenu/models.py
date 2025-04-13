@@ -19,15 +19,6 @@ class Class(models.Model):
     def __str__(self):
         return self.name
 
-
-class Collection(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True)
-
-    def __str__(self):
-        return self.name
-
-
 class ItemImage(models.Model):
     image = models.ImageField(upload_to='item_images/')
     caption = models.CharField(max_length=255, blank=True)
@@ -54,13 +45,55 @@ class Item(models.Model):
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
-    collections = models.ManyToManyField(Collection, related_name='items', blank=True)
 
     def __str__(self):
         status_display = dict(self.STATUS_CHOICES).get(self.status, self.status)
         tag_list = ", ".join(tag.name for tag in self.tags.all())
         return f"{self.title} [{status_display}] – Tags: {tag_list or 'None'}"
 
+class NewCollection(models.Model):
+    PUBLIC = 'public'
+    PRIVATE = 'private'
+    VISIBILITY_CHOICES = [
+        (PUBLIC, 'Public'),
+        (PRIVATE, 'Private'),
+    ]
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank = True)
+    items = models.ManyToManyField(Item, related_name='collections_of')
+    creator = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name = "creator")
+    visibility = models.CharField(
+        max_length=8,
+        choices=VISIBILITY_CHOICES,
+        default=PUBLIC
+    )
+    access = models.ManyToManyField('Profile', related_name = 'access')
+
+    def __str__(self):
+        return self.title
+
+    def save(self, *args, **kwargs):
+        """Ensure only librarians can create private collections."""
+        if self.creator.userRole == 0:  # If creator is a patron
+            self.visibility = self.PUBLIC  # Force visibility to Public
+        super().save(*args, **kwargs)
+        # If the collection is private, check the items
+        if self.visibility == self.PRIVATE:
+            # Check if any of the items in this collection are already in another private collection
+            for item in self.items.all():
+                # Query to find other collections with the same item and private visibility
+                if NewCollection.objects.filter(items=item, visibility=self.PRIVATE).exclude(id=self.id).exists():
+                    raise ValidationError(f"Item '{item.uuid}' is already in another private collection.")
+
+
+class CollectionAccessRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    collection = models.ForeignKey(NewCollection, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')], default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.collection.title} ({self.status})"
 
 class TestObject(models.Model):
     important_text = models.CharField(max_length=200)
