@@ -214,28 +214,41 @@ def add_item_submit(request):
         return redirect('marketplace')
     
     if request.method == 'POST':
-        identifier = request.POST.get('identifier')
-        is_available = 'is_available' in request.POST
-        
+        title = request.POST.get('title')
+        status = request.POST.get('status')
+        location = request.POST.get('location', '')
+        description = request.POST.get('description', '')
+
         new_item = Item(
-            identifier=identifier,
-            is_available=is_available
+            title=title,
+            status=status,
+            location=location,
+            description=description
         )
         new_item.save()
-        
+
         tag_ids = request.POST.getlist('tags')
         for tag_id in tag_ids:
             tag = Tag.objects.get(id=tag_id)
             new_item.tags.add(tag)
-        
-        if request.FILES.get('item_pic'):
-            item_pic = request.FILES['item_pic']
-            clean_name = ''.join(c for c in identifier if c.isalnum() or c in '._- ')
-            clean_name = clean_name.replace(' ', '_').lower()
-            file_url = default_storage.save(f"media/item_pics/{clean_name}.png", item_pic)        
+
+        images = request.FILES.getlist('images')
+        for img in images:
+            item_image = ItemImage(image=img)
+            item_image.save()
+            new_item.images.add(item_image)
+
         return redirect('marketplace')
     
     return redirect('add_item')
+        
+    '''
+    if request.FILES.get('item_pic'):
+        item_pic = request.FILES['item_pic']
+        clean_name = ''.join(c for c in identifier if c.isalnum() or c in '._- ')
+        clean_name = clean_name.replace(' ', '_').lower()
+        file_url = default_storage.save(f"media/item_pics/{clean_name}.png", item_pic)   
+    '''     
 
 
 @login_required
