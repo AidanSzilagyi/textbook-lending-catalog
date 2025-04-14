@@ -5,7 +5,7 @@
 {% block navbar %}
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-fluid">
-    <a class="navbar-brand" href="#">Home Page</a>
+    <a class="navbar-brand" href="#">Textbook Lending @ UVA</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -13,7 +13,9 @@
       <ul class="navbar-nav ms-auto">
         <li class="nav-item"><a class="nav-link" href="{% url 'messaging' %}">Messaging</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'borrowed_items' %}">Borrowed Items</a></li>
+        {% if user.profile.userRole == 1 %}
         <li class="nav-item"><a class="nav-link" href="{% url 'lent_items' %}">Lent Items</a></li>
+        {% endif %}
         <li class="nav-item"><a class="nav-link" href="{% url 'marketplace' %}">Marketplace</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'required_materials' %}">Required Materials</a></li>
         <li class="nav-item dropdown">
@@ -22,7 +24,9 @@
           </a>
           <ul class="dropdown-menu" style="width:100px;min-width:100px;">
             <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+            {% if user.profile.userRole == 1 %}
             <li><a class="dropdown-item" href="{% url 'librarian_settings' %}">Settings</a></li>
+            {% endif %}
             <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
           </ul>
         </li>
@@ -44,14 +48,14 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h2>Home Page</h2>
+  <h2>Patron Home Page</h2>
   <p class="mb-0">Logged in as {{ user.email }}</p>
 </div>
 
 <div class="row mb-4">
   <div class="col">
-    <form class="d-flex" method="GET" action="#">
-      <input class="form-control me-2" type="search" name="q" placeholder="Search">
+    <form class="d-flex" method="GET" action="{% url 'home_page' %}">
+      <input class="form-control me-2" type="search" name="q" placeholder="Search" value="{{ q }}">
       <button class="btn btn-outline-success" type="submit">Search</button>
     </form>
   </div>
