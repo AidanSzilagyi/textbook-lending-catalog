@@ -18,7 +18,7 @@ from pathlib import Path
 SECRET_KEY = 'django-insecure-flmnm$d)xp8sd$=oy_p_yyx_nsrfl%ok8gla&tj7+k7l*9&f*4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "supplysite-20c1e0704260.herokuapp.com",
@@ -209,12 +209,13 @@ STORAGES = {
 
 # Security
 
-SECURE_SSL_REDIRECT = not DEBUG
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 SECURE_HSTS_SECONDS = 3600
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
