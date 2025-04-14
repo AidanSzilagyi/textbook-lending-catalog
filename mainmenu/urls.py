@@ -24,7 +24,8 @@ urlpatterns = [
     path('add-item/', views.add_item, name='add_item'),
     path('add-item-submit/', views.add_item_submit, name='add_item_submit'),
     path('tag_create/', views.tag_create, name='tag_create'),
+    path('available_to_requested/', views.available_to_requested, name='available_to_requested'),
+    path('requested_to_in_circulation/', views.requested_to_in_circulation, name='requested_to_in_circulation'),
     path('item_post/', views.item_post, name='item_post'),
-
-
+    path('items/<uuid:uuid>/', views.item_detail, name='item_detail'),
 ]

@@ -3,8 +3,8 @@ from django.contrib.messages.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
-
-from .models import TestObject, Profile, Item, Class, Tag
+from .forms import ItemForm
+from .models import TestObject, Profile, Item, Class, Tag, ItemImage
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
@@ -42,11 +42,26 @@ def home_page(request):
 
 @login_required
 def librarian_home_page(request):
-    return render(request, "librarian_home_page.html")
+    if request.method == 'POST':
+        form = ItemForm(request.POST)
+        if form.is_valid():
+            item = form.save()
+            for f in request.FILES.getlist('images'):
+                img = ItemImage.objects.create(image=f)
+                item.images.add(img)
+            return redirect('librarian_home_page')
+    else:
+        form = ItemForm()
+
+    items = Item.objects.all().order_by('-id')
+
+    return render(request, "librarian_home_page.html", {
+        'form': form,
+        'items': items,
+    })
 
 @login_required
 def profile(request):
-    print("here")
     return render(request, "profile.html")
 
 @login_required
@@ -67,7 +82,35 @@ def lent_items(request):
 
 @login_required
 def borrowed_items(request):
-    return render(request, "borrowed_items.html")
+    available_items = Item.objects.filter(status='available')
+    requested_items = Item.objects.filter(status='requested')
+    context ={
+        'available_items': available_items,
+        'requested_items': requested_items,
+    }
+    return render(request, "borrowed_items.html", context)
+
+def available_to_requested(request):
+    available_items = Item.objects.filter(status='available')
+    try:
+        selected_item = available_items.get(pk=request.POST['item'])
+    except (KeyError, Item.DoesNotExist):
+        return render(request, "borrowed_items.html", {"available_items": available_items})
+    else:
+        selected_item.status = 'requested'
+        selected_item.save()
+        return HttpResponseRedirect(reverse('home_page_router'))
+
+def requested_to_in_circulation(request):
+    requested_items = Item.objects.filter(status='requested')
+    try:
+        selected_item = requested_items.get(pk=request.POST['item'])
+    except (KeyError, Item.DoesNotExist):
+        return render(request, "borrowed_items.html", {"requested_items": requested_items})
+    else:
+        selected_item.status = 'in_circulation'
+        selected_item.save()
+        return HttpResponseRedirect(reverse('home_page_router'))
 
 @login_required
 def marketplace(request):
@@ -162,9 +205,9 @@ def tag_create(request):
         tag_name = request.POST.get("tag_name", "").strip()
         if tag_name:
             Tag.objects.create(name=tag_name)
-        return redirect('required_materials')
+        return redirect('librarian_home_page')
 
-    return redirect('required_materials')
+    return redirect('librarian_home_page')
 
 @login_required
 def add_item_submit(request):
@@ -172,28 +215,41 @@ def add_item_submit(request):
         return redirect('marketplace')
     
     if request.method == 'POST':
-        identifier = request.POST.get('identifier')
-        is_available = 'is_available' in request.POST
-        
+        title = request.POST.get('title')
+        status = request.POST.get('status')
+        location = request.POST.get('location', '')
+        description = request.POST.get('description', '')
+
         new_item = Item(
-            identifier=identifier,
-            is_available=is_available
+            title=title,
+            status=status,
+            location=location,
+            description=description
         )
         new_item.save()
-        
+
         tag_ids = request.POST.getlist('tags')
         for tag_id in tag_ids:
             tag = Tag.objects.get(id=tag_id)
             new_item.tags.add(tag)
-        
-        if request.FILES.get('item_pic'):
-            item_pic = request.FILES['item_pic']
-            clean_name = ''.join(c for c in identifier if c.isalnum() or c in '._- ')
-            clean_name = clean_name.replace(' ', '_').lower()
-            file_url = default_storage.save(f"media/item_pics/{clean_name}.png", item_pic)        
+
+        images = request.FILES.getlist('images')
+        for img in images:
+            item_image = ItemImage(image=img)
+            item_image.save()
+            new_item.images.add(item_image)
+
         return redirect('marketplace')
     
     return redirect('add_item')
+        
+    '''
+    if request.FILES.get('item_pic'):
+        item_pic = request.FILES['item_pic']
+        clean_name = ''.join(c for c in identifier if c.isalnum() or c in '._- ')
+        clean_name = clean_name.replace(' ', '_').lower()
+        file_url = default_storage.save(f"media/item_pics/{clean_name}.png", item_pic)   
+    '''     
 
 
 @login_required
@@ -251,17 +307,23 @@ def add_required_tag(request, slug):
 
 @login_required
 def item_post(request):
-    if request.user.profile.userRole != 1:
-        return HttpResponseForbidden("You are not authorized to post material.")
+    if request.method == 'POST':
+        form = ItemForm(request.POST)
+        if form.is_valid():
+            item = form.save()
+            for f in request.FILES.getlist('images'):
+                img = ItemImage.objects.create(image=f)
+                item.images.add(img)
+            return redirect('librarian_home_page')
+    else:
+        form = ItemForm()
+    return render(request, 'librarian_home_page.html', {
+        'form': form
+    })
 
-    if request.method == "POST":
-        identifier = request.POST.get("identifier", "").strip()
-        is_available = request.POST.get("is_available") == "on"
-        tag_ids = request.POST.getlist("tags")  # Get a list of tag IDs
-        new_item = Item.objects.create(identifier=identifier, is_available=is_available)
-        if tag_ids:
-            tags = Tag.objects.filter(id__in=tag_ids)
-            new_item.tags.add(*tags)
-        return redirect('home_page')
-
-    return redirect('home_page')
+@login_required
+def item_detail(request, uuid):
+    item = get_object_or_404(Item, uuid=uuid)
+    return render(request, 'item_detail.html', {
+        'item': item
+    })

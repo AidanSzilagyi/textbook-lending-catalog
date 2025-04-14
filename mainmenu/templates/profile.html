@@ -36,9 +36,13 @@
     <div>
         <br>
         {% if USE_AWS %} 
-            {% if user.profile.profile_picture.url %}
-                <img src="{{ user.profile.profile_picture.url }}" alt="pfp">
-                {% else %}
+            {% if user.profile.profile_picture %}
+                {% if user.profile.profile_picture.url %}
+                    <img src="{{ user.profile.profile_picture.url }}" alt="pfp">
+                    {% else %}
+                    <img src="{% static 'profile-placeholder.png' %}" alt="pfp" class="img-fluid rounded" style="max-width: 200px;">
+                {% endif %}
+            {% else %}
                 <img src="{% static 'profile-placeholder.png' %}" alt="pfp" class="img-fluid rounded" style="max-width: 200px;">
             {% endif %}
         {% else %}
@@ -50,5 +54,7 @@
     <div class="mt-4">
         <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
     </div>
+{% include "footer.html" %}
+
 </body>
 </html>
