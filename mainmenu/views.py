@@ -6,7 +6,7 @@ from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
 
 from .forms import ItemForm
-from .models import TestObject, Profile, Item, Class, Tag, ItemImage
+from .models import *
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
@@ -88,7 +88,9 @@ def upload_pfp(request):
 
 @login_required
 def messaging(request):
-    return render(request, "messaging.html")
+    received = Message.objects.filter(recipient=request.user).order_by('-timestamp')
+    sent = Message.objects.filter(sender=request.user).order_by('-timestamp')
+    return render(request, 'messaging.html', {'received': received, 'sent': sent})
 
 @login_required
 def lent_items(request):
@@ -113,6 +115,14 @@ def available_to_requested(request):
     else:
         selected_item.status = 'requested'
         selected_item.save()
+
+        Message.objects.create(
+            sender=request.user,
+            recipient=selected_item.owner,
+            item=selected_item,
+            content=f"{request.user.username} has requested to borrow your textbook: {selected_item.title}"
+        )
+
         return HttpResponseRedirect(reverse('home_page_router'))
 
 #https://stackoverflow.com/questions/866272/how-can-i-build-multiple-submit-buttons-django-form
