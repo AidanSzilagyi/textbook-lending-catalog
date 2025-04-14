@@ -1,5 +1,5 @@
 from django import forms
-from .models import Item, Tag
+from .models import Item, Tag, Collection, Profile
 
 class ItemForm(forms.ModelForm):
     tags = forms.ModelMultipleChoiceField(
@@ -20,3 +20,21 @@ class ItemForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
         }
+
+
+class CollectionForm(forms.ModelForm):
+        class Meta:
+            model = Collection
+            fields = ['name', 'description', 'items', 'visibility']
+            widgets = {
+                'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter collection title'}),
+                'description': forms.Textarea(
+                    attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter description'}),
+                'items': forms.SelectMultiple(attrs={'class': 'form-select'}),
+                'visibility': forms.Select(attrs={'class': 'form-select'}),
+            }
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        # Ensure these fields exist in your Profile model (add them if needed)
+        fields = ['profile_picture', 'description', 'interests', 'birthday']

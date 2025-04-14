@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load socialaccount %}
+
+{% block title %}Login{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background: #f5f5f5;
+  }
+  /* Enlarged container */
+  .login-container {
+    max-width: 600px; /* Increased width */
+    margin: 80px auto; /* More vertical spacing */
+    background: white;
+    padding: 40px; /* More padding for a larger look */
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  .login-container h2 {
+    margin-bottom: 20px;
+  }
+  .login-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  /* Button/link styling */
+  .login-buttons a,
+  .google-login-btn {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+  }
+  .anonymous {
+    background-color: #6c757d; /* Gray */
+  }
+  .admin {
+    background-color: #28a745; /* Green */
+  }
+  /* Google login button styled in blue */
+  .google-login-btn {
+    background-color: #007bff; /* Blue */
+    border: none;
+    cursor: pointer;
+    width: 100%;
+  }
+  .google-login-btn:hover {
+    background-color: #0056b3;
+  }
+  .footer-note {
+    margin-top: 40px;
+    font-size: 0.9rem;
+    color: #999;
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+  <h2>Welcome to Textbook Lending @ UVA</h2>
+  <p>Please choose an option to continue:</p>
+
+  <div class="login-buttons">
+    <!-- Button to browse as an anonymous user -->
+    <a class="anonymous" href="{% url 'unauth_home_page' %}">Browse as Anonymous User</a>
+
+    <!-- Form-based Google Sign-In button -->
+    <form action="{% provider_login_url 'google' %}" method="post" style="margin: 0;">
+      {% csrf_token %}
+      <button type="submit" class="google-login-btn">Login</button>
+    </form>
+
+    <!-- Button to redirect to the Django admin site -->
+    <a class="admin" href="https://supplysite-20c1e0704260.herokuapp.com/admin/">Admin Login</a>
+  </div>
+</div>
+
+<div class="footer-note">
+  <p>This system is a class project. It is not monitored, and no real information should be submitted.</p>
+</div>
+{% endblock %}
