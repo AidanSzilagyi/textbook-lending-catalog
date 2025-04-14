@@ -209,7 +209,10 @@ STORAGES = {
 
 # Security
 
-if not DEBUG:
+import sys
+TEST = len(sys.argv) > 1 and sys.argv[1] == 'test'
+
+if not (DEBUG or TEST):
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
