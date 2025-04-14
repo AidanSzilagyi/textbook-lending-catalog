@@ -25,11 +25,37 @@ class Class(models.Model):
 
 
 class Collection(models.Model):
+    PUBLIC = 'public'
+    PRIVATE = 'private'
+    VISIBILITY_CHOICES = [
+        (PUBLIC, 'Public'),
+        (PRIVATE, 'Private'),
+    ]
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
+    items = models.ManyToManyField('Item', related_name='collections_of')
+    creator = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name="creator", null=True, default= None)
+    visibility = models.CharField(
+        choices=VISIBILITY_CHOICES,
+        default=PUBLIC
+    )
+    access = models.ManyToManyField('Profile', related_name='access')
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        """Ensure only librarians can create private collections."""
+        if self.creator.userRole == 0:  # If creator is a patron
+            self.visibility = self.PUBLIC  # Force visibility to Public
+        super().save(*args, **kwargs)
+        # If the collection is private, check the items
+        if self.visibility == self.PRIVATE:
+            # Check if any of the items in this collection are already in another private collection
+            for item in self.items.all():
+                # Query to find other collections with the same item and private visibility
+                if NewCollection.objects.filter(items=item, visibility=self.PRIVATE).exclude(id=self.id).exists():
+                    raise ValidationError(f"Item '{item.uuid}' is already in another private collection.")
 
 
 class ItemImage(models.Model):
@@ -60,7 +86,7 @@ class Item(models.Model):
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
-    collections = models.ManyToManyField(Collection, related_name='items', blank=True)
+    #collections = models.ManyToManyField(Collection, related_name='items', blank=True)
     due_date = models.DateField(
         blank=True,
         null=True,
