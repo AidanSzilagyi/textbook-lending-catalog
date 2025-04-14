@@ -33,5 +33,7 @@ urlpatterns = [
     path('collections', views.collection, name = 'collections'),
     path('collection/<int:collection_id>/', views.collection_detail, name='collection_detail'),
     path("profile/", views.profile, name="profile"),
-    path("profile/edit/", views.edit_profile, name="edit_profile")
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
+    path('collection/<int:collection_id>/edit/', views.edit_collection, name='edit_collection')
+
 ]

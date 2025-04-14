@@ -440,6 +440,9 @@ def collection_detail(request, collection_id):
 def edit_collection(request, collection_id):
     collection = get_object_or_404(Collection, pk=collection_id)
 
+    if request.user.profile != collection.creator:
+        return HttpResponseForbidden("You do not have permission to edit this collection.")
+
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection)
         if form.is_valid():
@@ -448,7 +451,8 @@ def edit_collection(request, collection_id):
     else:
         form = CollectionForm(instance=collection)
 
-    return render(request, 'collection_detail.html', {'form': form, 'collection': collection})
+    return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
+
 
 @login_required
 def request_access(request, collection_id):

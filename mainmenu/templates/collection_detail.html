@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <h2>{{ collection.name }}</h2>
 <p>{{ collection.description }}</p>
-{% if collection.access == user.profile or collection.visibility == 'public' %}
+{% if collection.access == user.profile or collection.visibility == 'public' or collection.creator == user.profile or user.profile.userRole == 1%}
 <h3>Items in this Collection:</h3>
 <ul>
 
   {% for item in items %}
     <li>{{ item.title }}</li> <!-- adjust field names -->
   {% endfor %}
-<!--  {#% if user.profile.userRole == 1 or collection.creator.id == user.profile.id %#}
-  <a href="{#% url 'edit_collection' collection.id %#}">Edit Collection</a>
--->
-  {#% endif %#}
+ {% if user.profile.userRole == 1 or collection.creator.id == user.profile.id %}
+    <a href="{% url 'edit_collection' collection.id %}" class="btn btn-warning">Edit Collection</a>
+  {% endif %}
 {% else %}
 <h3>Sorry You have no access</h3>
 <!--<form method="POST" action="{#% url 'request_access' collection.id %#}">
@@ -20,4 +19,8 @@
 </form>
 -->
 {% endif %}
+<div class="mt-4">
+<a href="{% url 'collections' %}" class="btn btn-primary mt-3">Back to Collections</a>
+</div>
 </ul>
+

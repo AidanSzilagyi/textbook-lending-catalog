@@ -77,11 +77,14 @@
 
 </body>
 <h1>Collections by Others</h1>
+<form method="get" class="mb-3">
+<!-- <input type="text" name="q" value="{#  #}{ request.GET.q|default:'' }}" placeholder="Search collections by title" class="form-control" />
+-->
+</form>
 {% if collections %}
     <ul>
         {% for c in collections %}
             <li><strong><a href="{% url 'collection_detail' c.id %}">{{ c.name }}</a></strong> - {{ c.description }}</li>
-
         {% endfor %}
 {% else %}
     <p>No public collections found.</p>
