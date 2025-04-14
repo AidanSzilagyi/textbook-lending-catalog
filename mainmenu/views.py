@@ -155,9 +155,11 @@ def lent_items(request):
 def borrowed_items(request):
     available_items = Item.objects.filter(status='available')
     requested_items = Item.objects.filter(status='requested')
+    borrowed_item_list = request.user.borrowed_items.all().order_by('-id')
     context ={
         'available_items': available_items,
         'requested_items': requested_items,
+        'borrowed_item_list': borrowed_item_list,
     }
     return render(request, "borrowed_items.html", context)
 
@@ -195,14 +197,14 @@ def requested_to_in_circulation(request):
             selected_item.save()
 
             patron = selected_item.borrower
-
+            borrowed_item_list = patron.borrowed_items.all().order_by('-id')
             Message.objects.create(
                 sender=request.user,  # owner
                 recipient=patron,
                 item=selected_item,
                 content=f"Your request to borrow '{selected_item.title}' has been accepted. You now have it in circulation!"
             )
-
+            borrowed_item_list.add(selected_item)
             return HttpResponseRedirect(reverse('home_page_router'))
 
         elif 'no' in request.POST:
