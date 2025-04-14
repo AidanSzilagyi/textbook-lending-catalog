@@ -197,14 +197,14 @@ def requested_to_in_circulation(request):
             selected_item.save()
 
             patron = selected_item.borrower
-            borrowed_item_list = patron.borrowed_items.all().order_by('-id')
+            patron.borrowed_items.add(selected_item)
             Message.objects.create(
                 sender=request.user,  # owner
                 recipient=patron,
                 item=selected_item,
                 content=f"Your request to borrow '{selected_item.title}' has been accepted. You now have it in circulation!"
             )
-            borrowed_item_list.add(selected_item)
+
             return HttpResponseRedirect(reverse('home_page_router'))
 
         elif 'no' in request.POST:
@@ -257,8 +257,9 @@ def patron_to_librarian(request):
         selected_patron.save()
         return HttpResponseRedirect(reverse("home_page_router"))
 
+@login_required
 def required_materials(request):
-    classes = Class.objects.all()
+    classes = Class.objects.exclude(slug='')
     return render(request, "required_materials.html", {"classes": classes})
 
 @login_required
@@ -282,6 +283,8 @@ def class_create(request):
         if not name or not description:
             return redirect('home_page')
         base_slug = slugify(name)
+        if not base_slug:  # If slugify returns empty string
+            base_slug = "class"  # Provide a default base
         slug = base_slug
         counter = 1
         while Class.objects.filter(slug=slug).exists():
