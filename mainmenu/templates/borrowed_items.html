@@ -42,7 +42,7 @@
         <form action="{% url 'requested_to_in_circulation' %}" method="post">
             {%  csrf_token %}
             <fieldset>
-                <legend><h1>Select which textbook do you want to send a request for</h1></legend>
+                <legend><h1>Select which requests to accept or deny</h1></legend>
                     {% for item in requested_items_items %}
                         <div>
                             <input type ="radio" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
