@@ -48,8 +48,31 @@ def home_page_router(request):
     return unauth_home_page(request)
 
 def unauth_home_page(request):
-    print("In unauth_home_page, rendering unauth_home.html")
-    return render(request, 'unauth_home.html')
+    """
+    For anonymous users, return items that are either:
+      - Not in any collection, OR
+      - In collections that are all public.
+    This is achieved by excluding any item that appears in any collection with visibility set to 'private'.
+    """
+    q = request.GET.get('q', '')
+    # Exclude items that are in any private collections.
+    base_items = Item.objects.exclude(collections_of__visibility='private').distinct()
+    
+    if q:
+        items = base_items.filter(
+            Q(title__icontains=q) |
+            Q(description__icontains=q) |
+            Q(location__icontains=q) |
+            Q(tags__name__icontains=q)
+        ).distinct().order_by('-id')
+    else:
+        items = base_items.order_by('-id')
+    
+    context = {
+        'items': items,
+        'q': q,
+    }
+    return render(request, 'unauth_home.html', context)
 
 @login_required
 def home_page(request):
@@ -414,7 +437,7 @@ def collection_detail(request, collection_id):
     })
 
 def edit_collection(request, collection_id):
-    collection = get_object_or_404(NewCollection, pk=collection_id)
+    collection = get_object_or_404(Collection, pk=collection_id)
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection)

@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load socialaccount %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Marketplace (Anonymous){% endblock %}
 
 {% block extra_css %}
 <style>
+  /* Retain your styling */
   #itemForm, #tagForm {
     display: none;
     margin-top: 20px;
@@ -12,6 +13,17 @@
   .scroll-container {
     max-height: 300px;
     overflow-y: auto;
+  }
+  /* Style for the list items to mimic marketplace details */
+  .item-list-item {
+    padding: 10px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  .item-image {
+    height: 100px;
+    width: 100px;
+    object-fit: cover;
+    margin-right: 15px;
   }
 </style>
 {% endblock %}
@@ -21,11 +33,6 @@
   <div class="container-fluid">
     <a class="navbar-brand" href="#">
       Textbook Lending @ UVA
-      <!-- {% if user.profile.userRole == 1 %}
-        Librarian Home Page
-      {% else %}
-        Home Page
-      {% endif %} -->
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
             data-bs-target="#navbarNav" aria-controls="navbarNav" 
@@ -34,9 +41,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="{% url 'messaging' %}">Messaging</a></li>
-        <!-- <li class="nav-item"><a class="nav-link" href="{% url 'borrowed_items' %}">Borrowed Items</a></li> -->
-        <!-- <li class="nav-item"><a class="nav-link" href="{% url 'lent_items' %}">Lent Items</a></li> -->
+        <!-- Minimal navigation for anonymous users -->
         <li class="nav-item"><a class="nav-link" href="{% url 'marketplace' %}">Marketplace</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'required_materials' %}">Required Materials</a></li>
         <li class="nav-item">
@@ -52,81 +57,81 @@
 {% endblock %}
 
 {% block content %}
-{% if user %}
 <div class="container mt-5">
+  <!-- Search info -->
   <div class="row mb-4">
     <div class="col text-end">
       <p class="lead">Browsing as anonymous user.</p>
     </div>
   </div>
-  <div class="row">
+  <!-- Search Form -->
+  <div class="row mb-4">
     <div class="col">
-      <form class="d-flex" method="GET" action="#">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="q">
+      <form class="d-flex" method="GET" action="{% url 'unauth_home_page' %}">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="q" value="{{ q }}">
         <button class="btn btn-outline-success" type="submit">Search</button>
       </form>
     </div>
   </div>
-
+  
+  <!-- Scrollable List of Items -->
   <div class="scroll-container mt-4">
     <div class="list-group">
       {% for item in items %}
-        <div class="list-group-item">
-          <h5 class="mb-1">{{ item.identifier }}</h5>
-          <p class="mb-1">
-            <small>
-              Tags:
-              {% for tag in item.tags.all %}
-                {{ tag.name }}{% if not forloop.last %}, {% endif %}
-              {% endfor %}
-            </small>
-          </p>
-          {% if item.is_available %}
-            <span class="badge bg-success">Available</span>
+      <div class="list-group-item item-list-item">
+        <div class="d-flex align-items-center">
+          {% if USE_AWS and item.images.first %}
+            <img src="{{ item.images.first.image.url }}" alt="{{ item.title }}" class="item-image">
           {% else %}
-            <span class="badge bg-danger">Not Available</span>
+            <div class="bg-light text-center" style="height:100px; width:100px; margin-right:15px; line-height:100px;">
+              No Image
+            </div>
           {% endif %}
+          <div>
+            <h5 class="mb-1">{{ item.title }}</h5>
+            <p class="mb-1">
+              <small>
+                Tags:
+                {% for tag in item.tags.all %}
+                  <span class="badge bg-primary">{{ tag.name }}</span>
+                {% endfor %}
+              </small>
+            </p>
+            <p class="mb-1">
+              <small>
+                Owner: <span class="badge bg-secondary">{{ item.owner }}</span>
+              </small>
+            </p>
+            <p class="mb-1">
+              <small>
+                Status:
+                {% if item.status == 'available' %}
+                  <span class="badge bg-success">{{ item.get_status_display }}</span>
+                {% elif item.status == 'in_circulation' %}
+                  <span class="badge bg-primary">{{ item.get_status_display }}</span>
+                {% elif item.status == 'repairing' %}
+                  <span class="badge bg-warning text-dark">{{ item.get_status_display }}</span>
+                {% elif item.status == 'lost' %}
+                  <span class="badge bg-danger">{{ item.get_status_display }}</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                {% endif %}
+              </small>
+            </p>
+            <!-- No interactive buttons here -->
+          </div>
         </div>
+      </div>
       {% empty %}
-        <p>No materials posted yet.</p>
+      <p>No materials posted yet.</p>
       {% endfor %}
     </div>
   </div>
 </div>
-{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-  document.addEventListener("DOMContentLoaded", function(){
-    const postItemBtn = document.getElementById("postItemBtn");
-    const cancelItemBtn = document.getElementById("cancelItemBtn");
-    const itemForm = document.getElementById("itemForm");
-    
-    const addTagBtn = document.getElementById("addTagBtn");
-    const cancelTagBtn = document.getElementById("cancelTagBtn");
-    const tagForm = document.getElementById("tagForm");
-    
-    if(postItemBtn){
-      postItemBtn.addEventListener("click", function(){
-        itemForm.style.display = "block";
-      });
-    }
-    if(cancelItemBtn){
-      cancelItemBtn.addEventListener("click", function(){
-        itemForm.style.display = "none";
-      });
-    }
-    if(addTagBtn){
-      addTagBtn.addEventListener("click", function(){
-        tagForm.style.display = "block";
-      });
-    }
-    if(cancelTagBtn){
-      cancelTagBtn.addEventListener("click", function(){
-        tagForm.style.display = "none";
-      });
-    }
-  });
+  // No additional JavaScript needed for interaction since anonymous users don't have interactive options.
 </script>
 {% endblock %}
