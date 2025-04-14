@@ -58,8 +58,7 @@ class Item(models.Model):
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='owned_items')
-    #collections = models.ManyToManyField(Collection, related_name='items', blank=True)
+    collections = models.ManyToManyField(Collection, related_name='items', blank=True)
     due_date = models.DateField(
         blank=True,
         null=True,
@@ -128,7 +127,6 @@ class Message(models.Model):
 
     def __str__(self):
         return f"From {self.sender} to {self.recipient}: {self.content[:30]}"
-
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
