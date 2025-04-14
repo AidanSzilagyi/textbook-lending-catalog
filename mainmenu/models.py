@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+from django.conf import settings
 import uuid
 
 class Tag(models.Model):
@@ -56,6 +58,7 @@ class Item(models.Model):
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='owned_items')
     collections = models.ManyToManyField(Collection, related_name='items', blank=True)
     due_date = models.DateField(
         blank=True,
@@ -114,6 +117,18 @@ class Notification(models.Model):
 
     class Meta:
         unique_together = ('user','item','kind')
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, null=True, blank=True)
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"From {self.sender} to {self.recipient}: {self.content[:30]}"
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
