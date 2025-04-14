@@ -255,7 +255,6 @@ def patron_to_librarian(request):
         selected_patron.save()
         return HttpResponseRedirect(reverse("home_page_router"))
 
-@login_required
 def required_materials(request):
     classes = Class.objects.all()
     return render(request, "required_materials.html", {"classes": classes})
