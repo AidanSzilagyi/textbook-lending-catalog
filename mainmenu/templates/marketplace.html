@@ -5,10 +5,15 @@
         <h1>Marketplace</h1>
     </div>
 
-    <div class="row mb-4 mt-5 pt-3">
-        <div class="col text-end">
+    <div class="container mt-5 pt-5">
+        <div class="row mb-4">
+          <div class="col text-end">
             <p class="lead">Logged in as {{ user.username }}</p>
+          </div>
         </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
     </div>
 
     <div class="row">
@@ -64,8 +69,4 @@
         <a href="{% url 'add_item' %}" class="btn btn-success">Add New Item</a>
     </div>
     {% endif %}
-
-    <div class="mt-4">
-        <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
-    </div>
 {% endblock %}

@@ -12,7 +12,7 @@
 {% block navbar %}
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-fluid">
-    <a class="navbar-brand" href="#">Librarian Page</a>
+    <a class="navbar-brand" href="#">Textbook Lending @ UVA</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -41,25 +41,24 @@
 
 {% block content %}
 <div class="container mt-5">
-  <div class="row mb-4">
-    <div class="col text-end">
-      <p class="lead">Logged in as {{ user.email }}</p>
-    </div>
-  </div>
-
-  <div class="row mb-4">
-    <div class="col">
-      <form class="d-flex" method="GET" action="#">
-        <input class="form-control me-2" type="search" name="q" placeholder="Search">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-      </form>
-    </div>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Librarian Home Page</h2>
+    <p class="mb-0">Logged in as {{ user.email }}</p>
   </div>
 
   <div class="row mb-3">
     <div class="col text-start">
       <button id="postItemBtn" class="btn btn-primary">Post Material</button>
       <button id="addTagBtn" class="btn btn-info ms-2">Add Tag</button>
+    </div>
+  </div>
+  
+  <div class="row mb-4">
+    <div class="col">
+      <form class="d-flex" method="GET" action="{% url 'librarian_home_page' %}">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search" value="{{ q }}">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+      </form>
     </div>
   </div>
 
