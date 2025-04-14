@@ -95,8 +95,22 @@ def available_to_requested(request):
     try:
         selected_item = available_items.get(pk=request.POST['item'])
     except (KeyError, Item.DoesNotExist):
-        return render(request, "available_to_requested.html")
+        return render(request, "borrowed_items.html", {"available_items": available_items})
+    else:
+        selected_item.status = 'requested'
+        selected_item.save()
+        return HttpResponseRedirect(reverse('home_page_router'))
 
+def requested_to_in_circulation(request):
+    requested_items = Item.objects.filter(status='requested')
+    try:
+        selected_item = requested_items.get(pk=request.POST['item'])
+    except (KeyError, Item.DoesNotExist):
+        return render(request, "borrowed_items.html", {"requested_items": requested_items})
+    else:
+        selected_item.status = 'in_circulation'
+        selected_item.save()
+        return HttpResponseRedirect(reverse('home_page_router'))
 
 @login_required
 def marketplace(request):
