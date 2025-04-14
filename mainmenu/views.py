@@ -174,14 +174,14 @@ def requested_to_in_circulation(request):
             selected_item.save()
 
             patron = selected_item.borrower
-            borrowed_item_list = patron.borrowed_items.all().order_by('-id')
+            patron.borrowed_items.add(selected_item)
+
             Message.objects.create(
                 sender=request.user,  # owner
                 recipient=patron,
                 item=selected_item,
                 content=f"Your request to borrow '{selected_item.title}' has been accepted. You now have it in circulation!"
             )
-            borrowed_item_list.add(selected_item)
             return HttpResponseRedirect(reverse('home_page_router'))
 
         elif 'no' in request.POST:
