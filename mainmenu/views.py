@@ -257,8 +257,9 @@ def patron_to_librarian(request):
         selected_patron.save()
         return HttpResponseRedirect(reverse("home_page_router"))
 
+@login_required
 def required_materials(request):
-    classes = Class.objects.all()
+    classes = Class.objects.exclude(slug='')
     return render(request, "required_materials.html", {"classes": classes})
 
 @login_required
@@ -282,6 +283,8 @@ def class_create(request):
         if not name or not description:
             return redirect('home_page')
         base_slug = slugify(name)
+        if not base_slug:  # If slugify returns empty string
+            base_slug = "class"  # Provide a default base
         slug = base_slug
         counter = 1
         while Class.objects.filter(slug=slug).exists():
