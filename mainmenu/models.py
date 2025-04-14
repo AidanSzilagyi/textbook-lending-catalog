@@ -7,6 +7,8 @@ from django.utils import timezone
 
 from django.conf import settings
 
+def short_uuid():
+    return uuid.uuid4().hex[:10]
 
 class Tag(models.Model):
     name = models.CharField(max_length=255)
@@ -25,6 +27,7 @@ class Class(models.Model):
 
 
 class Collection(models.Model):
+
     PUBLIC = 'public'
     PRIVATE = 'private'
     VISIBILITY_CHOICES = [
@@ -33,13 +36,14 @@ class Collection(models.Model):
     ]
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
-    items = models.ManyToManyField('Item', related_name='collections_of')
-    creator = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name="creator", null=True, default= None)
+    items = models.ManyToManyField('Item', related_name='collections_of', default=None)
+    creator = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name="creator", default= None)
     visibility = models.CharField(
         choices=VISIBILITY_CHOICES,
         default=PUBLIC
     )
     access = models.ManyToManyField('Profile', related_name='access')
+    identifier = models.CharField(max_length=10, unique=True, default=short_uuid, editable=False)
 
     def __str__(self):
         return self.name
@@ -54,9 +58,17 @@ class Collection(models.Model):
             # Check if any of the items in this collection are already in another private collection
             for item in self.items.all():
                 # Query to find other collections with the same item and private visibility
-                if NewCollection.objects.filter(items=item, visibility=self.PRIVATE).exclude(id=self.id).exists():
+                if Collection.objects.filter(items=item, visibility=self.PRIVATE).exclude(id=self.id).exists():
                     raise ValidationError(f"Item '{item.uuid}' is already in another private collection.")
 
+class CollectionAccessRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')], default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.collection.title} ({self.status})"
 
 class ItemImage(models.Model):
     image = models.ImageField(upload_to='item_images/')

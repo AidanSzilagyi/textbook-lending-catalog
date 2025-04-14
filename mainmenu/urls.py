@@ -29,5 +29,5 @@ urlpatterns = [
     path('item_post/', views.item_post, name='item_post'),
     path('items/<uuid:uuid>/', views.item_detail, name='item_detail'),
     path('collections', views.collection, name = 'collections'),
-    path('collections/<slug:slug>/', views.collection_detail, name='collection_detail'),
+    path('collection/<int:collection_id>/', views.collection_detail, name='collection_detail'),
 ]
