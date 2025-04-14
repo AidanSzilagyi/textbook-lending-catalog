@@ -57,7 +57,7 @@
   <div class="scroll-container mt-4">
     <div class="d-flex flex-row overflow-auto">
       {% for class_obj in classes %}
-        <a href="{% url 'class_detail' class_obj.id %}" class="text-decoration-none text-reset">
+        <a href="{% url 'class_detail' class_obj.slug %}" class="text-decoration-none text-reset">
           <div class="card me-3" style="min-width: 200px;">
             <div class="card-body">
               <h5 class="card-title">{{ class_obj.name }}</h5>
