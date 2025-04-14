@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<h2>{{ collection.title }}</h2>
+<p>{{ collection.description }}</p>
+{% if collection.access == user.profile or collection.visibility == NewCollection.PUBLIC %}
+<h3>Items in this Collection:</h3>
+<ul>
+  {% for item in items %}
+    <li>{{ item.name }}</li> <!-- adjust field names -->
+  {% endfor %}
+  {% if user.profile.userRole == 1 or collection.creator.id == user.profile.id %}
+  <a href="{% url 'edit_collection' collection.id %}">Edit Collection</a>
+
+  {% endif %}
+{% else %}
+<h3>Sorry You have no access</h3>
+<form method="POST" action="{% url 'request_access' collection.id %}">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-warning">Request Access</button>
+</form>
+{% endif %}
+</ul>

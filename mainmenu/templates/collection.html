@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Collections</title>
+</head>
+<body>
+<!-- New Collection Button -->
+<div class="mt-4">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCollectionModal">
+        Add New Collection
+    </button>
+</div>
+
+<!-- Bootstrap Modal for Adding New Collection -->
+<div class="modal fade" id="addCollectionModal" tabindex="-1" aria-labelledby="addCollectionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
+              c  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'collections' %}">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Collection Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="items" class="form-label">Select Items</label>
+                        <select class="form-select" id="items" name="items" multiple>
+                            {% for item in items %}
+                                <option value="{{ item.id }}">{{ item.identifier }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple items.</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="visibility" class="form-label">Visibility</label>
+                        <select class="form-select" id="visibility" name="visibility">
+                            {% if user.profile.userRole == 0 %}
+                                <option value="public" selected>Public</option>
+                            {% else %}
+                                <option value="public" selected>Public</option>
+                                <option value="private">Private</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">Save Collection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<h1>Your Collections</h1>
+<!--{#%if user_collections %#}
+    <ul>
+        {#% for c in user_collections %#}
+            <li><strong>{#  #}{ c.title }}</strong> - {#  #}{ c.description }}</li>
+        {#% endfor %#}
+    </ul>
+{#% else %#}
+    <p>You have no collections.</p>
+{#% endif %#}
+-->
+</body>
+<h1>Collections by Others</h1>
+{% if collections %}
+    <ul>
+        {% for c in Collections %}
+            <li><strong>{{ c.title }}</strong> - {{ c.description }}</li>
+            <a href="{% url 'collection_detail' collection.id %}">
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No public collections found.</p>
+{% endif %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="fixed-top bg-light text-center py-3">
+
+</div>
+<body class="container mt-5">
+  <div class="d-flex align-items-center">
+    <div class="row mb-4">
+      <div class="col text-end">
+        <p class="lead">Logged in as {{ user.username }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="mt-4">
+    <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

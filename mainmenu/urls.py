@@ -28,4 +28,6 @@ urlpatterns = [
     path('requested_to_in_circulation/', views.requested_to_in_circulation, name='requested_to_in_circulation'),
     path('item_post/', views.item_post, name='item_post'),
     path('items/<uuid:uuid>/', views.item_detail, name='item_detail'),
+    path('collections', views.collection, name = 'collections'),
+    path('collections/<slug:slug>/', views.collection_detail, name='collection_detail'),
 ]

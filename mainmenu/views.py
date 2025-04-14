@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
 
-from .forms import ItemForm
+from .forms import ItemForm, CollectionForm
 from .models import TestObject, Profile, Item, Class, Tag, ItemImage
 from django.contrib.auth import logout
 from django.template import loader
@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.core.files.storage import default_storage
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import Notification
+from .models import Notification, Collection
 from .serializers import NotificationSerializer
 
 def index(request):
@@ -354,3 +354,30 @@ def unread_notifications(request):
     qs = Notification.objects.filter(user=request.user, read=False)
     serializer = NotificationSerializer(qs, many=True)
     return Response(serializer.data)
+
+def collection(request):
+
+    if request.method == "POST":
+        form = CollectionForm(request.POST)
+        if form.is_valid():
+            collection = form.save(commit=False)
+            collection.creator = request.user.profile  # Assign logged-in user as creator
+            collection.save()
+            form.save_m2m()  # Save ManyToMany relationships
+            return render(request, "collection.html", {'form': form, 'collections': collection}) # Redirect to homepage after submission
+
+    else:
+        form = CollectionForm()
+
+    collections = Collection.objects.all()
+    user_collections = Collection.objects.filter(creator =request.user.profile)
+
+    return render(request, 'collection.html', {'form': form, 'collections': collections, 'user_collections': user_collections})
+
+def collection_detail(request, collection_id):
+    collection = get_object_or_404(Collection, pk=collection_id)
+    items = collection.items.all()  # if you have a related_name like 'items' in FK
+    return render(request, 'collection_detail.html', {
+        'collection': collection,
+        'items': items,
+    })
