@@ -250,6 +250,10 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': True,
         },
+        'django.template': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
     },
     'root': {
     'handlers': ['console'],

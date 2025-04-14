@@ -28,18 +28,25 @@ def logout_view(request):
     return redirect("index")
 
 def home_page_router(request):
+    print("In home_page_router")
     if request.user.is_authenticated:
+        print(f"User is authenticated, role: {request.user.profile.userRole}")
         if request.user.profile.userRole == 0:
+            print("Rendering home_page.html")
             return home_page(request)
         elif request.user.profile.userRole == 1:
+            print("Rendering librarian_home_page.html")
             return librarian_home_page(request)
+    print("User not authenticated, rendering unauth_home.html")
     return unauth_home_page(request)
 
 def unauth_home_page(request):
+    print("In unauth_home_page, rendering unauth_home.html")
     return render(request, 'unauth_home.html')
 
 @login_required
 def home_page(request):
+    print("In home_page, rendering home_page.html")
     context = {
         'tags': Tag.objects.all(),
         'items': Item.objects.all(),
@@ -48,6 +55,7 @@ def home_page(request):
 
 @login_required
 def librarian_home_page(request):
+    print("In librarian_home_page, rendering librarian_home_page.html")
     if request.method == 'POST':
         form = ItemForm(request.POST)
         if form.is_valid():

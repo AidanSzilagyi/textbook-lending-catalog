@@ -1,65 +1,60 @@
 <!DOCTYPE html>
 {% extends "base.html" %}
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Borrowed Items</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+
+{% block content %}
 <div class="fixed-top bg-light text-center py-3">
   <h1>Borrowed Items</h1>
 </div>
-<body class="container mt-5">
-  <div class="d-flex align-items-center">
-    <div class="row mb-4">
-      <div class="col text-end">
-        <p class="lead">Logged in as {{ user.username }}</p>
+
+<div class="container mt-5 pt-5">
+  <div class="row mb-4">
+    <div class="col text-end">
+      <p class="lead">Logged in as {{ user.username }}</p>
+    </div>
+  </div>
+
+  {% if user.profile.userRole == 0 %}
+    <div class="card mb-4">
+      <div class="card-body">
+        <form action="{% url 'available_to_requested' %}" method="post">
+          {% csrf_token %}
+          <fieldset>
+            <legend class="h2">Select which textbook do you want to send a request for</legend>
+            {% for item in available_items %}
+              <div class="form-check mb-2">
+                <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
+                <label class="form-check-label" for="item{{ forloop.counter }}">{{item}}</label>
+              </div>
+            {% endfor %}
+          </fieldset>
+          <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        </form>
       </div>
     </div>
-  </div>
-  <div>
-  {% if user.profile.userRole == 0 %}
-    <div>
-        <form action="{% url 'available_to_requested' %}" method="post">
-            {%  csrf_token %}
-            <fieldset>
-                <legend><h1>Select which textbook do you want to send a request for</h1></legend>
-                    {% for item in available_items %}
-                        <div>
-                            <input type ="radio" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                            <label for="item{{ forloop.counter }}">{{item}}</label><br>
-                        </div>
-                {% endfor %}
-            </fieldset>
-            <input type="submit" value="Submit">
-        </form>
-    </div>
   {% endif %}
-  </div>
-  <div>
+
   {% if user.profile.userRole == 1 %}
-    <div>
+    <div class="card mb-4">
+      <div class="card-body">
         <form action="{% url 'requested_to_in_circulation' %}" method="post">
-            {%  csrf_token %}
-            <fieldset>
-                <legend><h1>Select which requests to accept or deny</h1></legend>
-                    {% for item in requested_items_items %}
-                        <div>
-                            <input type ="radio" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                            <label for="item{{ forloop.counter }}">{{item}}</label><br>
-                        </div>
-                {% endfor %}
-            </fieldset>
-            <input type="submit" value="Submit">
+          {% csrf_token %}
+          <fieldset>
+            <legend class="h2">Select which requests to accept or deny</legend>
+            {% for item in requested_items_items %}
+              <div class="form-check mb-2">
+                <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
+                <label class="form-check-label" for="item{{ forloop.counter }}">{{item}}</label>
+              </div>
+            {% endfor %}
+          </fieldset>
+          <button type="submit" class="btn btn-primary mt-3">Submit</button>
         </form>
+      </div>
     </div>
   {% endif %}
-  </div>
+
   <div class="mt-4">
     <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
   </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-</body>
-</html>
+</div>
+{% endblock %}
