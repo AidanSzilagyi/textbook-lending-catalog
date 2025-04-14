@@ -2,9 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import uuid
 from django.utils import timezone
 from django.conf import settings
-import uuid
+
+def short_uuid():
+    return uuid.uuid4().hex[:10]
 
 class Tag(models.Model):
     name = models.CharField(max_length=255)
@@ -23,12 +26,48 @@ class Class(models.Model):
 
 
 class Collection(models.Model):
+
+    PUBLIC = 'public'
+    PRIVATE = 'private'
+    VISIBILITY_CHOICES = [
+        (PUBLIC, 'Public'),
+        (PRIVATE, 'Private'),
+    ]
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
+    items = models.ManyToManyField('Item', related_name='collections_of', default=None)
+    creator = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name="creator", default= None)
+    visibility = models.CharField(
+        choices=VISIBILITY_CHOICES,
+        default=PUBLIC
+    )
+    access = models.ManyToManyField('Profile', related_name='access')
+    identifier = models.CharField(max_length=10, unique=True, default=short_uuid, editable=False)
 
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        """Ensure only librarians can create private collections."""
+        if self.creator.userRole == 0:  # If creator is a patron
+            self.visibility = self.PUBLIC  # Force visibility to Public
+        super().save(*args, **kwargs)
+        # If the collection is private, check the items
+        if self.visibility == self.PRIVATE:
+            # Check if any of the items in this collection are already in another private collection
+            for item in self.items.all():
+                # Query to find other collections with the same item and private visibility
+                if Collection.objects.filter(items=item, visibility=self.PRIVATE).exclude(id=self.id).exists():
+                    raise ValidationError(f"Item '{item.uuid}' is already in another private collection.")
+
+class CollectionAccessRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')], default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.collection.title} ({self.status})"
 
 class ItemImage(models.Model):
     image = models.ImageField(upload_to='item_images/')
@@ -105,7 +144,7 @@ class Profile(models.Model):
     birthday = models.DateField(blank=True, null=True)
     def __str__(self):
         return self.user.username
-    
+
 class Notification(models.Model):
     KINDS = [
       ('one_week','One Week Out'),

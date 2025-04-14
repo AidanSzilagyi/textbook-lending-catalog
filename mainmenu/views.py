@@ -4,10 +4,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q 
+from django.db.models import Q
 from .forms import ProfileForm
 
-from .forms import ItemForm
+from .forms import ItemForm, CollectionForm
 from .models import *
 from django.contrib.auth import logout
 from django.template import loader
@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.core.files.storage import default_storage
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from .models import Notification
+from .models import Notification, Collection, CollectionAccessRequest
 from .serializers import NotificationSerializer
 
 # New view: the landing login page
@@ -308,6 +308,14 @@ def add_item_submit(request):
         return redirect('marketplace')
     return redirect('add_item')
 
+    '''
+    if request.FILES.get('item_pic'):
+        item_pic = request.FILES['item_pic']
+        clean_name = ''.join(c for c in identifier if c.isalnum() or c in '._- ')
+        clean_name = clean_name.replace(' ', '_').lower()
+        file_url = default_storage.save(f"media/item_pics/{clean_name}.png", item_pic)   
+    '''
+
 @login_required
 def material_create(request, slug):
     if request.user.profile.userRole != 1:
@@ -377,6 +385,52 @@ def unread_notifications(request):
     serializer = NotificationSerializer(qs, many=True)
     return Response(serializer.data)
 
+def collection(request):
+
+    if request.method == "POST":
+        form = CollectionForm(request.POST)
+        if form.is_valid():
+            collection = form.save(commit=False)
+            collection.creator = request.user.profile  # Assign logged-in user as creator
+            collection.save()
+            form.save_m2m()  # Save ManyToMany relationships
+            return redirect('collections')# Redirect to homepage after submission
+
+    else:
+        form = CollectionForm()
+
+    collections = Collection.objects.all()
+    user_collections = Collection.objects.filter(creator = request.user.profile)
+    items = Item.objects.all()
+
+    return render(request, 'collection.html', {'form': form, 'collections': collections, 'items' : items, 'user_collections': user_collections})
+
+def collection_detail(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+    items = collection.items.all()  # if you have a related_name like 'items' in FK
+    return render(request, 'collection_detail.html', {
+        'collection': collection,
+        'items': items,
+    })
+
+def edit_collection(request, collection_id):
+    collection = get_object_or_404(NewCollection, pk=collection_id)
+
+    if request.method == 'POST':
+        form = CollectionForm(request.POST, instance=collection)
+        if form.is_valid():
+            form.save()
+            return redirect('collection_detail', collection_id=collection.id)
+    else:
+        form = CollectionForm(instance=collection)
+
+    return render(request, 'collection_detail.html', {'form': form, 'collection': collection})
+
+@login_required
+def request_access(request, collection_id):
+    collection = get_object_or_404(Collection, pk=collection_id)
+    CollectionAccessRequest.objects.get_or_create(user=request.user, collection=collection)
+    return redirect('collection_detail', collection_id=collection.id)
 @login_required
 def edit_profile(request):
     profile = request.user.profile
