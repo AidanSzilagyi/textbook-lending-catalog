@@ -65,15 +65,16 @@
     </div>
 </div>
 <h1>Your Collections</h1>
-{% if user_collections %}
+<!--{#%if user_collections %#}
     <ul>
-        {% for c in user_collections %}
-            <li><strong>{{ c.title }}</strong> - {{ c.description }}</li>
-        {% endfor %}
+        {#% for c in user_collections %#}
+            <li><strong>{#  #}{ c.title }}</strong> - {#  #}{ c.description }}</li>
+        {#% endfor %#}
     </ul>
-{% else %}
+{#% else %#}
     <p>You have no collections.</p>
-{% endif %}
+{#% endif %#}
+-->
 </body>
 <h1>Collections by Others</h1>
 {% if collections %}

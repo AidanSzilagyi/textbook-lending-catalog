@@ -301,13 +301,12 @@ def collection(request):
         form = CollectionForm()
 
     collections = NewCollection.objects.all()
-    user_collections = NewCollection.objects.filter(creator =request.user.profile)
+    # user_collections = NewCollection.objects.filter(creator =request.user.profile)
 
-    return render(request, 'collection.html', {'form': form, 'collections': collections, 'user_collections': user_collections,
-        'public_collections': public_collections})
+    return render(request, 'collection.html', {'form': form, 'collections': collections, 'user_collections': user_collections})
 
 def collection_detail(request, collection_id):
-    collection = get_object_or_404(Collection, pk=collection_id)
+    collection = get_object_or_404(NewCollection, pk=collection_id)
     items = collection.items.all()  # if you have a related_name like 'items' in FK
     return render(request, 'collection_detail.html', {
         'collection': collection,
@@ -315,7 +314,7 @@ def collection_detail(request, collection_id):
     })
 
 def edit_collection(request, collection_id):
-    collection = get_object_or_404(Collection, pk=collection_id)
+    collection = get_object_or_404(NewCollection, pk=collection_id)
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection)
@@ -329,6 +328,6 @@ def edit_collection(request, collection_id):
 
 @login_required
 def request_access(request, collection_id):
-    collection = get_object_or_404(Collection, pk=collection_id)
+    collection = get_object_or_404(NewCollection, pk=collection_id)
     CollectionAccessRequest.objects.get_or_create(user=request.user, collection=collection)
     return redirect('collection_detail', collection_id=collection.id)
