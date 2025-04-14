@@ -3,12 +3,18 @@ from django.contrib.messages.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
+from rest_framework.permissions import IsAuthenticated
+
 from .forms import ItemForm
 from .models import TestObject, Profile, Item, Class, Tag, ItemImage
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
 from django.core.files.storage import default_storage
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from .models import Notification
+from .serializers import NotificationSerializer
 
 def index(request):
     try:
@@ -327,3 +333,10 @@ def item_detail(request, uuid):
     return render(request, 'item_detail.html', {
         'item': item
     })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def unread_notifications(request):
+    qs = Notification.objects.filter(user=request.user, read=False)
+    serializer = NotificationSerializer(qs, many=True)
+    return Response(serializer.data)

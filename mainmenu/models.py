@@ -3,6 +3,10 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
+from django.utils import timezone
+
+from django.conf import settings
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=255)
@@ -57,6 +61,31 @@ class Item(models.Model):
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
     collections = models.ManyToManyField(Collection, related_name='items', blank=True)
+    due_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="When this item is due back."
+    )
+    borrower = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='borrowed_items',
+        blank=True,
+        null=True,
+        help_text="The user who currently has this item checked out."
+    )
+
+    @property
+    def is_overdue(self):
+        if not self.due_date:
+            return False
+        return timezone.localdate() > self.due_date
+
+    def days_until_due(self):
+        if not self.due_date:
+            return None
+        delta = self.due_date - timezone.localdate()
+        return delta.days
 
     def __str__(self):
         status_display = dict(self.STATUS_CHOICES).get(self.status, self.status)
@@ -74,6 +103,21 @@ class Profile(models.Model):
     userRole = models.IntegerField(default=0) #0 represents patron, 1 represents librarian
     def __str__(self):
         return self.user.username
+
+class Notification(models.Model):
+    KINDS = [
+      ('one_week','One Week Out'),
+      ('one_day','One Day Out'),
+      ('one_hour','One Hour Out'),
+    ]
+    user      = models.ForeignKey(User, on_delete=models.CASCADE)
+    item      = models.ForeignKey(Item, on_delete=models.CASCADE)
+    kind      = models.CharField(max_length=20, choices=KINDS)
+    created   = models.DateTimeField(auto_now_add=True)
+    read      = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user','item','kind')
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
