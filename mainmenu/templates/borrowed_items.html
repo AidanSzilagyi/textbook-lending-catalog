@@ -43,7 +43,7 @@
             {%  csrf_token %}
             <fieldset>
                 <legend><h1>Select which requests to accept or deny</h1></legend>
-                    {% for item in requested_items_items %}
+                    {% for item in requested_items %}
                         <div>
                             <input type ="radio" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
                             <label for="item{{ forloop.counter }}">{{item}}</label><br>
