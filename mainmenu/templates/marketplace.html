@@ -30,6 +30,10 @@
                             {% endfor %}
                         </p>
                         <p class="card-text">
+                            Owner:
+                                <span class="badge bg-secondary ">{{ item.owner }}</span>
+                        </p>
+                        <p class="card-text">
                             Status:
                             {% if item.status == 'available' %}
                                 <span class="badge bg-success">{{ item.get_status_display }}</span>

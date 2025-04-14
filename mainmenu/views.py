@@ -250,11 +250,13 @@ def add_item_submit(request):
         location = request.POST.get('location', '')
         description = request.POST.get('description', '')
 
+
         new_item = Item(
             title=title,
             status=status,
             location=location,
-            description=description
+            description=description,
+            owner=request.user
         )
         new_item.save()
 
