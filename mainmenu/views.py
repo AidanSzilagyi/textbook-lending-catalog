@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q 
-
+from .forms import ProfileForm
 
 from .forms import ItemForm
 from .models import *
@@ -376,3 +376,15 @@ def unread_notifications(request):
     qs = Notification.objects.filter(user=request.user, read=False)
     serializer = NotificationSerializer(qs, many=True)
     return Response(serializer.data)
+
+@login_required
+def edit_profile(request):
+    profile = request.user.profile
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = ProfileForm(instance=profile)
+    return render(request, 'edit_profile.html', {'form': form})

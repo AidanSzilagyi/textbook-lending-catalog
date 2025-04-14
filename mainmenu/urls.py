@@ -30,4 +30,6 @@ urlpatterns = [
     path('requested_to_in_circulation/', views.requested_to_in_circulation, name='requested_to_in_circulation'),
     path('item_post/', views.item_post, name='item_post'),
     path('items/<uuid:uuid>/', views.item_detail, name='item_detail'),
+    path("profile/", views.profile, name="profile"),
+    path("profile/edit/", views.edit_profile, name="edit_profile")
 ]

@@ -99,10 +99,13 @@ class TestObject(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='media/profile_pics/', blank=True, null=True)
-    userRole = models.IntegerField(default=0) #0 represents patron, 1 represents librarian
+    userRole = models.IntegerField(default=0)  # 0 represents patron, 1 represents librarian
+    description = models.TextField(blank=True, null=True)
+    interests = models.TextField(blank=True, null=True)
+    birthday = models.DateField(blank=True, null=True)
     def __str__(self):
         return self.user.username
-
+    
 class Notification(models.Model):
     KINDS = [
       ('one_week','One Week Out'),
