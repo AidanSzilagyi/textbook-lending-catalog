@@ -2,7 +2,7 @@ from django.contrib import admin
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 # Register your models here.
-from .models import TestObject,Profile, Class, Tag, Item, Collection
+from .models import TestObject,Profile, Class, Tag, Item, Message, Notification, Collection
 
 from mainmenu.models import Tag
 

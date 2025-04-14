@@ -4,7 +4,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
 from django.utils import timezone
-
 from django.conf import settings
 
 def short_uuid():
@@ -99,6 +98,7 @@ class Item(models.Model):
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
     #collections = models.ManyToManyField(Collection, related_name='items', blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='owned_items')
     due_date = models.DateField(
         blank=True,
         null=True,
@@ -138,7 +138,10 @@ class TestObject(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='media/profile_pics/', blank=True, null=True)
-    userRole = models.IntegerField(default=0) #0 represents patron, 1 represents librarian
+    userRole = models.IntegerField(default=0)  # 0 represents patron, 1 represents librarian
+    description = models.TextField(blank=True, null=True)
+    interests = models.TextField(blank=True, null=True)
+    birthday = models.DateField(blank=True, null=True)
     def __str__(self):
         return self.user.username
 
@@ -156,6 +159,18 @@ class Notification(models.Model):
 
     class Meta:
         unique_together = ('user','item','kind')
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, null=True, blank=True)
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"From {self.sender} to {self.recipient}: {self.content[:30]}"
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

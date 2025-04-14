@@ -1,5 +1,5 @@
 from django import forms
-from .models import Item, Tag, Collection
+from .models import Item, Tag, Collection, Profile
 
 class ItemForm(forms.ModelForm):
     tags = forms.ModelMultipleChoiceField(
@@ -33,3 +33,8 @@ class CollectionForm(forms.ModelForm):
                 'items': forms.SelectMultiple(attrs={'class': 'form-select'}),
                 'visibility': forms.Select(attrs={'class': 'form-select'}),
             }
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        # Ensure these fields exist in your Profile model (add them if needed)
+        fields = ['profile_picture', 'description', 'interests', 'birthday']
