@@ -3,6 +3,12 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
+from django.forms import ValidationError
+from django.utils import timezone
+from django.conf import settings
+
+def short_uuid():
+    return uuid.uuid4().hex[:10]
 
 class Tag(models.Model):
     name = models.CharField(max_length=255)
@@ -21,12 +27,48 @@ class Class(models.Model):
 
 
 class Collection(models.Model):
+
+    PUBLIC = 'public'
+    PRIVATE = 'private'
+    VISIBILITY_CHOICES = [
+        (PUBLIC, 'Public'),
+        (PRIVATE, 'Private'),
+    ]
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
+    items = models.ManyToManyField('Item', related_name='collections_of', default=None)
+    creator = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name="creator", default= None)
+    visibility = models.CharField(
+        choices=VISIBILITY_CHOICES,
+        default=PUBLIC
+    )
+    access = models.ManyToManyField('Profile', related_name='access')
+    identifier = models.CharField(max_length=10, unique=True, default=short_uuid, editable=False)
 
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        """Ensure only librarians can create private collections."""
+        if self.creator.userRole == 0:  # If creator is a patron
+            self.visibility = self.PUBLIC  # Force visibility to Public
+        super().save(*args, **kwargs)
+        # If the collection is private, check the items
+        if self.visibility == self.PRIVATE:
+            # Check if any of the items in this collection are already in another private collection
+            for item in self.items.all():
+                # Query to find other collections with the same item and private visibility
+                if Collection.objects.filter(items=item, visibility=self.PRIVATE).exclude(id=self.id).exists():
+                    raise ValidationError(f"Item '{item.uuid}' is already in another private collection.")
+
+class CollectionAccessRequest(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('denied', 'Denied')], default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.collection.title} ({self.status})"
 
 class ItemImage(models.Model):
     image = models.ImageField(upload_to='item_images/')
@@ -56,7 +98,33 @@ class Item(models.Model):
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
-    collections = models.ManyToManyField(Collection, related_name='items', blank=True)
+    #collections = models.ManyToManyField(Collection, related_name='items', blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='owned_items')
+    due_date = models.DateField(
+        blank=True,
+        null=True,
+        help_text="When this item is due back."
+    )
+    borrower = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='borrowed_items',
+        blank=True,
+        null=True,
+        help_text="The user who currently has this item checked out."
+    )
+
+    @property
+    def is_overdue(self):
+        if not self.due_date:
+            return False
+        return timezone.localdate() > self.due_date
+
+    def days_until_due(self):
+        if not self.due_date:
+            return None
+        delta = self.due_date - timezone.localdate()
+        return delta.days
 
     def __str__(self):
         status_display = dict(self.STATUS_CHOICES).get(self.status, self.status)
@@ -71,9 +139,39 @@ class TestObject(models.Model):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='media/profile_pics/', blank=True, null=True)
-    userRole = models.IntegerField(default=0) #0 represents patron, 1 represents librarian
+    userRole = models.IntegerField(default=0)  # 0 represents patron, 1 represents librarian
+    description = models.TextField(blank=True, null=True)
+    interests = models.TextField(blank=True, null=True)
+    birthday = models.DateField(blank=True, null=True)
     def __str__(self):
         return self.user.username
+
+class Notification(models.Model):
+    KINDS = [
+      ('one_week','One Week Out'),
+      ('one_day','One Day Out'),
+      ('one_hour','One Hour Out'),
+    ]
+    user      = models.ForeignKey(User, on_delete=models.CASCADE)
+    item      = models.ForeignKey(Item, on_delete=models.CASCADE)
+    kind      = models.CharField(max_length=20, choices=KINDS)
+    created   = models.DateTimeField(auto_now_add=True)
+    read      = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user','item','kind')
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, null=True, blank=True)
+    content = models.TextField()
+    timestamp = models.DateTimeField(default=timezone.now)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"From {self.sender} to {self.recipient}: {self.content[:30]}"
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

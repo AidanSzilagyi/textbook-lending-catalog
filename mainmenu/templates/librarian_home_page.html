@@ -1,143 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <style>
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock title %}
+
+{% block extra_css %}
+<style>
     #itemForm, #tagForm { display: none; margin-top: 20px; }
     .scroll-container { max-height: 300px; overflow-y: auto; margin-top: 20px; }
-  </style>
-</head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">Librarian Page</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="{% url 'messaging' %}">Messaging</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'borrowed_items' %}">Borrowed Items</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'lent_items' %}">Lent Items</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'marketplace' %}">Marketplace</a></li>
-          <li class="nav-item"><a class="nav-link" href="{% url 'required_materials' %}">Required Materials</a></li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuButton" data-bs-toggle="dropdown">
-              Account
-            </a>
-            <ul class="dropdown-menu" style="width:100px;min-width:100px;">
-              <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
-              <li><a class="dropdown-item" href="{% url 'librarian_settings' %}">Settings</a></li>
-              <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
-            </ul>
-          </li>
-        </ul>
-      </div>
+</style>
+{% endblock extra_css %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Textbook Lending @ UVA</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{% url 'messaging' %}">Messaging</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'borrowed_items' %}">Borrowed Items</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'lent_items' %}">Lent Items</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'marketplace' %}">Marketplace</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'required_materials' %}">Required Materials</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dropdownMenuButton" data-bs-toggle="dropdown">
+            Account
+          </a>
+          <ul class="dropdown-menu" style="width:100px;min-width:100px;">
+            <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'librarian_settings' %}">Settings</a></li>
+            <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+          </ul>
+        </li>
+      </ul>
     </div>
-  </nav>
+  </div>
+</nav>
+{% endblock navbar %}
 
-  <div class="container mt-5">
-    <div class="row mb-4">
-      <div class="col text-end">
-        <p class="lead">Logged in as {{ user.email }}</p>
-      </div>
+{% block content %}
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Librarian Home Page</h2>
+    <p class="mb-0">Logged in as {{ user.email }}</p>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col text-start">
+      <button id="postItemBtn" class="btn btn-primary">Post Material</button>
+      <button id="addTagBtn" class="btn btn-info ms-2">Add Tag</button>
     </div>
-
-    <div class="row mb-4">
-      <div class="col">
-        <form class="d-flex" method="GET" action="#">
-          <input class="form-control me-2" type="search" name="q" placeholder="Search">
-          <button class="btn btn-outline-success" type="submit">Search</button>
-        </form>
-      </div>
-    </div>
-
-    <div class="row mb-3">
-      <div class="col text-start">
-        <button id="postItemBtn" class="btn btn-primary">Post Material</button>
-        <button id="addTagBtn" class="btn btn-info ms-2">Add Tag</button>
-      </div>
-    </div>
-
-    <div id="itemForm" class="card p-4">
-      <form method="POST" action="{% url 'item_post' %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-
-        <div class="mb-3">
-          {{ form.title.label_tag }}
-          {{ form.title }}
-          {{ form.title.errors }}
-        </div>
-        <div class="mb-3">
-          {{ form.status.label_tag }}
-          {{ form.status }}
-          {{ form.status.errors }}
-        </div>
-        <div class="mb-3">
-          {{ form.location.label_tag }}
-          {{ form.location }}
-          {{ form.location.errors }}
-        </div>
-        <div class="mb-3">
-          {{ form.description.label_tag }}
-          {{ form.description }}
-          {{ form.description.errors }}
-        </div>
-        <div class="mb-3">
-          {{ form.tags.label_tag }}
-          {{ form.tags }}
-          {{ form.tags.errors }}
-          <small class="form-text text-muted">Hold Ctrl (Windows) or ⌘ (Mac) to select multiple.</small>
-        </div>
-        <div class="mb-3">
-          <label for="id_images" class="form-label">Images</label>
-          <input type="file" name="images" id="id_images" multiple class="form-control">
-        </div>
-
-        <button type="submit" class="btn btn-primary">Submit Material</button>
-        <button type="button" id="cancelItemBtn" class="btn btn-secondary ms-2">Cancel</button>
+  </div>
+  
+  <div class="row mb-4">
+    <div class="col">
+      <form class="d-flex" method="GET" action="{% url 'librarian_home_page' %}">
+        <input class="form-control me-2" type="search" name="q" placeholder="Search" value="{{ q }}">
+        <button class="btn btn-outline-success" type="submit">Search</button>
       </form>
-    </div>
-
-    <div id="tagForm" class="card p-4 mt-3">
-      <form method="POST" action="{% url 'tag_create' %}">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="tagName" class="form-label">Tag Name</label>
-          <input type="text" name="tag_name" id="tagName" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit Tag</button>
-        <button type="button" id="cancelTagBtn" class="btn btn-secondary ms-2">Cancel</button>
-      </form>
-    </div>
-
-    <div class="scroll-container">
-      <div class="list-group">
-        {% for item in items %}
-        <a href="{% url 'item_detail' item.uuid %}" class="list-group-item list-group-item-action">
-          <div class="d-flex w-100 justify-content-between">
-            <h5 class="mb-1">{{ item.title }}</h5>
-            <small>{{ item.get_status_display }}</small>
-          </div>
-          <p class="mb-1">
-            {% for tag in item.tags.all %}
-              <span class="badge bg-secondary">{{ tag.name }}</span>
-            {% endfor %}
-          </p>
-        </a>
-        {% empty %}
-        <p>No materials posted yet.</p>
-        {% endfor %}
-      </div>
     </div>
   </div>
 
-  <script>
+  <div id="itemForm" class="card p-4">
+    <form method="POST" action="{% url 'item_post' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+
+      <div class="mb-3">
+        {{ form.title.label_tag }}
+        {{ form.title }}
+        {{ form.title.errors }}
+      </div>
+      <div class="mb-3">
+        {{ form.status.label_tag }}
+        {{ form.status }}
+        {{ form.status.errors }}
+      </div>
+      <div class="mb-3">
+        {{ form.location.label_tag }}
+        {{ form.location }}
+        {{ form.location.errors }}
+      </div>
+      <div class="mb-3">
+        {{ form.description.label_tag }}
+        {{ form.description }}
+        {{ form.description.errors }}
+      </div>
+      <div class="mb-3">
+        {{ form.tags.label_tag }}
+        {{ form.tags }}
+        {{ form.tags.errors }}
+        <small class="form-text text-muted">Hold Ctrl (Windows) or ⌘ (Mac) to select multiple.</small>
+      </div>
+      <div class="mb-3">
+        <label for="id_images" class="form-label">Images</label>
+        <input type="file" name="images" id="id_images" multiple class="form-control">
+      </div>
+
+      <button type="submit" class="btn btn-primary">Submit Material</button>
+      <button type="button" id="cancelItemBtn" class="btn btn-secondary ms-2">Cancel</button>
+    </form>
+  </div>
+
+  <div id="tagForm" class="card p-4 mt-3">
+    <form method="POST" action="{% url 'tag_create' %}">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="tagName" class="form-label">Tag Name</label>
+        <input type="text" name="tag_name" id="tagName" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit Tag</button>
+      <button type="button" id="cancelTagBtn" class="btn btn-secondary ms-2">Cancel</button>
+    </form>
+  </div>
+
+  <div class="scroll-container">
+    <div class="list-group">
+      {% for item in items %}
+      <a href="{% url 'item_detail' item.uuid %}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ item.title }}</h5>
+          <small>{{ item.get_status_display }}</small>
+        </div>
+        <p class="mb-1">
+          {% for tag in item.tags.all %}
+            <span class="badge bg-secondary">{{ tag.name }}</span>
+          {% endfor %}
+        </p>
+      </a>
+      {% empty %}
+      <p>No materials posted yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
     document.addEventListener("DOMContentLoaded", function(){
       document.getElementById("postItemBtn")
         .addEventListener("click", () => document.getElementById("itemForm").style.display = "block");
@@ -148,8 +149,5 @@
       document.getElementById("cancelTagBtn")
         .addEventListener("click", () => document.getElementById("tagForm").style.display = "none");
     });
-  </script>
-{% include "footer.html" %}
-
-</body>
-</html>
+</script>
+{% endblock extra_js %}

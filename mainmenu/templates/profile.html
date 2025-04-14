@@ -1,60 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <title>Profile</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-<body class="container mt-5">
-    <div class="fixed-top bg-light text-center py-3">
-        <h1>Your Profile</h1>
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <!-- Back to Homepage Button -->
+  <div class="mb-3">
+    <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
+  </div>
+
+  <div class="card">
+    <div class="card-header text-center">
+      <h2>{{ user.first_name }} {{ user.last_name }}'s Profile</h2>
     </div>
-    <div class="d-flex align-items-center">
-        <div class="row mb-4">
-            <div class="col text-end">
-              <p class="lead">Logged in as {{ user.username }}</p>
-            </div>
-          </div>
-    </div>
-    <br>
-    <div class="mt-4">
-        <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
-    </div>
-    <br>
-    <div><a><b>Profile Picture:</b></a></div>
-    <br>
-    <div class="mb-3">
-        <form action="{% url 'upload_pfp' %}" method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input class="form-control" type="file" id="pfp" name="pfp">
-            <input type="submit">
-        </form>
-    </div>
-    <div>
-        <br>
-        {% if USE_AWS %} 
-            {% if user.profile.profile_picture %}
-                {% if user.profile.profile_picture.url %}
-                    <img src="{{ user.profile.profile_picture.url }}" alt="pfp">
-                    {% else %}
-                    <img src="{% static 'profile-placeholder.png' %}" alt="pfp" class="img-fluid rounded" style="max-width: 200px;">
-                {% endif %}
-            {% else %}
-                <img src="{% static 'profile-placeholder.png' %}" alt="pfp" class="img-fluid rounded" style="max-width: 200px;">
-            {% endif %}
+    <div class="card-body">
+      <!-- Profile Picture Section -->
+      <div class="text-center mb-4">
+        {% if USE_AWS %}
+          {% if user.profile.profile_picture and user.profile.profile_picture.url %}
+            <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail" style="max-width:200px;">
+          {% else %}
+            <img src="{% static 'profile-placeholder.png' %}" alt="Profile Picture" class="img-thumbnail" style="max-width:200px;">
+          {% endif %}
         {% else %}
-            <img src="{% static 'profile-placeholder.png' %}" alt="pfp" class="img-fluid rounded" style="max-width: 200px;">
+          <img src="{% static 'profile-placeholder.png' %}" alt="Profile Picture" class="img-thumbnail" style="max-width:200px;">
         {% endif %}
-        <br>
-    </div>
+      </div>
 
-    <div class="mt-4">
-        <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
-    </div>
-{% include "footer.html" %}
+      <!-- User Information Section -->
+      <div class="mb-3">
+        <p><strong>Real Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
+      </div>
 
-</body>
-</html>
+      <!-- Optional Additional Profile Information -->
+      <div class="mb-3">
+        <h4>Additional Information</h4>
+        {% if user.profile.description %}
+          <p><strong>Description:</strong> {{ user.profile.description }}</p>
+        {% else %}
+          <p><em>No description provided. <a href="{% url 'edit_profile' %}">Add one?</a></em></p>
+        {% endif %}
+        {% if user.profile.interests %}
+          <p><strong>Interests:</strong> {{ user.profile.interests }}</p>
+        {% else %}
+          <p><em>No interests provided. <a href="{% url 'edit_profile' %}">Add some?</a></em></p>
+        {% endif %}
+        {% if user.profile.birthday %}
+          <p><strong>Birthday:</strong> {{ user.profile.birthday|date:"F j, Y" }}</p>
+        {% else %}
+          <p><em>No birthday provided. <a href="{% url 'edit_profile' %}">Add one?</a></em></p>
+        {% endif %}
+      </div>
+
+      <!-- Profile Picture Update Form -->
+      <div class="mb-3">
+        <form action="{% url 'upload_pfp' %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-2">
+            <label for="pfp"><strong>Update Profile Picture:</strong></label>
+            <input class="form-control" type="file" id="pfp" name="pfp">
+          </div>
+          <input type="submit" class="btn btn-secondary" value="Upload Picture">
+        </form>
+      </div>
+
+      <!-- Edit Profile Button -->
+      <div>
+        <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile Information</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
