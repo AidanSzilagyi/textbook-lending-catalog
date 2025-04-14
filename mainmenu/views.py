@@ -6,8 +6,9 @@ from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q 
 
+
 from .forms import ItemForm
-from .models import TestObject, Profile, Item, Class, Tag, ItemImage
+from .models import *
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
@@ -119,7 +120,9 @@ def upload_pfp(request):
 
 @login_required
 def messaging(request):
-    return render(request, "messaging.html")
+    received = Message.objects.filter(recipient=request.user).order_by('-timestamp')
+    sent = Message.objects.filter(sender=request.user).order_by('-timestamp')
+    return render(request, 'messaging.html', {'received': received, 'sent': sent})
 
 @login_required
 def lent_items(request):
@@ -144,8 +147,18 @@ def available_to_requested(request):
     else:
         selected_item.status = 'requested'
         selected_item.save()
+
+        Message.objects.create(
+            sender=request.user,
+            recipient=selected_item.owner,
+            item=selected_item,
+            content=f"{request.user.username} has requested to borrow your textbook: {selected_item.title}"
+        )
+
         return HttpResponseRedirect(reverse('home_page_router'))
 
+#https://stackoverflow.com/questions/866272/how-can-i-build-multiple-submit-buttons-django-form
+@login_required
 def requested_to_in_circulation(request):
     requested_items = Item.objects.filter(status='requested')
     try:
@@ -155,11 +168,33 @@ def requested_to_in_circulation(request):
     else:
         if 'yes' in request.POST:
             selected_item.status = 'in_circulation'
+            selected_item.borrower = selected_item.message_set.filter(item=selected_item).last().sender  # 👈 Patron
             selected_item.save()
+
+            patron = selected_item.borrower
+
+            Message.objects.create(
+                sender=request.user,  # owner
+                recipient=patron,
+                item=selected_item,
+                content=f"Your request to borrow '{selected_item.title}' has been accepted. You now have it in circulation!"
+            )
+
             return HttpResponseRedirect(reverse('home_page_router'))
+
         elif 'no' in request.POST:
             selected_item.status = 'available'
             selected_item.save()
+
+            patron_message = selected_item.message_set.filter(item=selected_item).last()
+            if patron_message:
+                Message.objects.create(
+                    sender=request.user,  # owner
+                    recipient=patron_message.sender,
+                    item=selected_item,
+                    content=f"Your request to borrow '{selected_item.title}' has been denied. The item is now available again."
+                )
+
             return HttpResponseRedirect(reverse('home_page_router'))
 
 @login_required
@@ -252,11 +287,13 @@ def add_item_submit(request):
         status = request.POST.get('status')
         location = request.POST.get('location', '')
         description = request.POST.get('description', '')
+
         new_item = Item(
             title=title,
             status=status,
             location=location,
-            description=description
+            description=description,
+            owner=request.user
         )
         new_item.save()
         tag_ids = request.POST.getlist('tags')
