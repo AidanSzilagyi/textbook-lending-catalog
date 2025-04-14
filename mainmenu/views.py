@@ -101,6 +101,7 @@ def available_to_requested(request):
         selected_item.save()
         return HttpResponseRedirect(reverse('home_page_router'))
 
+#https://stackoverflow.com/questions/866272/how-can-i-build-multiple-submit-buttons-django-form
 def requested_to_in_circulation(request):
     requested_items = Item.objects.filter(status='requested')
     try:
@@ -108,9 +109,14 @@ def requested_to_in_circulation(request):
     except (KeyError, Item.DoesNotExist):
         return render(request, "borrowed_items.html", {"requested_items": requested_items})
     else:
-        selected_item.status = 'in_circulation'
-        selected_item.save()
-        return HttpResponseRedirect(reverse('home_page_router'))
+        if 'yes' in request.POST:
+            selected_item.status = 'in_circulation'
+            selected_item.save()
+            return HttpResponseRedirect(reverse('home_page_router'))
+        elif 'no' in request.POST:
+            selected_item.status = 'available'
+            selected_item.save()
+            return HttpResponseRedirect(reverse('home_page_router'))
 
 @login_required
 def marketplace(request):
