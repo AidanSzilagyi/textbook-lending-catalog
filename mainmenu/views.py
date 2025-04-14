@@ -82,7 +82,35 @@ def lent_items(request):
 
 @login_required
 def borrowed_items(request):
-    return render(request, "borrowed_items.html")
+    available_items = Item.objects.filter(status='available')
+    requested_items = Item.objects.filter(status='requested')
+    context ={
+        'available_items': available_items,
+        'requested_items': requested_items,
+    }
+    return render(request, "borrowed_items.html", context)
+
+def available_to_requested(request):
+    available_items = Item.objects.filter(status='available')
+    try:
+        selected_item = available_items.get(pk=request.POST['item'])
+    except (KeyError, Item.DoesNotExist):
+        return render(request, "borrowed_items.html", {"available_items": available_items})
+    else:
+        selected_item.status = 'requested'
+        selected_item.save()
+        return HttpResponseRedirect(reverse('home_page_router'))
+
+def requested_to_in_circulation(request):
+    requested_items = Item.objects.filter(status='requested')
+    try:
+        selected_item = requested_items.get(pk=request.POST['item'])
+    except (KeyError, Item.DoesNotExist):
+        return render(request, "borrowed_items.html", {"requested_items": requested_items})
+    else:
+        selected_item.status = 'in_circulation'
+        selected_item.save()
+        return HttpResponseRedirect(reverse('home_page_router'))
 
 @login_required
 def marketplace(request):

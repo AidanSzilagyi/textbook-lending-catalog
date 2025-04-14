@@ -41,11 +41,13 @@ class Item(models.Model):
     STATUS_IN_CIRCULATION = 'in_circulation'
     STATUS_REPAIRING = 'repairing'
     STATUS_LOST = 'lost'
+    STATUS_REQUESTED = 'requested'
     STATUS_CHOICES = [
         (STATUS_AVAILABLE, 'Available'),
         (STATUS_IN_CIRCULATION, 'In Circulation'),
         (STATUS_REPAIRING, 'Being Repaired'),
         (STATUS_LOST, 'Lost'),
+        (STATUS_REQUESTED, 'Requested'),
     ]
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(max_length=255, blank=True, null=True)
