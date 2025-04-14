@@ -35,7 +35,7 @@
     <hr>
 
     <h4>Images</h4>
-    {% if item.images.exists %}
+    {% if USE_AWS and item.images.exists %}
       <div class="row">
         {% for img in item.images.all %}
           <div class="col-md-4 mb-3">
