@@ -47,7 +47,9 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run Migrations
-      run: python manage.py migrate
+      run: |
+        python manage.py makemigrations --merge
+        python manage.py migrate
       env:
         DATABASE_URL: "postgres://u87mp92uopqaal:pf31c4371fa143258fec18cb4976521f082fcdda3d4a7f15b1068a7e7af3f3b3c@localhost:5432/dcee73lo5rne93"
 
