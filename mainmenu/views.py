@@ -48,8 +48,31 @@ def home_page_router(request):
     return unauth_home_page(request)
 
 def unauth_home_page(request):
-    print("In unauth_home_page, rendering unauth_home.html")
-    return render(request, 'unauth_home.html')
+    """
+    For anonymous users, return items that are either:
+      - Not in any collection, OR
+      - In collections that are all public.
+    This is achieved by excluding any item that appears in any collection with visibility set to 'private'.
+    """
+    q = request.GET.get('q', '')
+    # Exclude items that are in any private collections.
+    base_items = Item.objects.exclude(collections_of__visibility='private').distinct()
+    
+    if q:
+        items = base_items.filter(
+            Q(title__icontains=q) |
+            Q(description__icontains=q) |
+            Q(location__icontains=q) |
+            Q(tags__name__icontains=q)
+        ).distinct().order_by('-id')
+    else:
+        items = base_items.order_by('-id')
+    
+    context = {
+        'items': items,
+        'q': q,
+    }
+    return render(request, 'unauth_home.html', context)
 
 @login_required
 def home_page(request):
@@ -236,7 +259,7 @@ def patron_to_librarian(request):
 
 @login_required
 def required_materials(request):
-    classes = Class.objects.all()
+    classes = Class.objects.exclude(slug='')
     return render(request, "required_materials.html", {"classes": classes})
 
 @login_required
@@ -260,6 +283,8 @@ def class_create(request):
         if not name or not description:
             return redirect('home_page')
         base_slug = slugify(name)
+        if not base_slug:  # If slugify returns empty string
+            base_slug = "class"  # Provide a default base
         slug = base_slug
         counter = 1
         while Class.objects.filter(slug=slug).exists():
@@ -416,7 +441,10 @@ def collection_detail(request, collection_id):
     })
 
 def edit_collection(request, collection_id):
-    collection = get_object_or_404(NewCollection, pk=collection_id)
+    collection = get_object_or_404(Collection, pk=collection_id)
+
+    if request.user.profile != collection.creator:
+        return HttpResponseForbidden("You do not have permission to edit this collection.")
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection)
@@ -426,7 +454,8 @@ def edit_collection(request, collection_id):
     else:
         form = CollectionForm(instance=collection)
 
-    return render(request, 'collection_detail.html', {'form': form, 'collection': collection})
+    return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
+
 
 @login_required
 def request_access(request, collection_id):

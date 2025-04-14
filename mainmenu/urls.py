@@ -2,16 +2,16 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.home_page_router, name="index"),
+    path("", views.login_page, name="index"),
     path("logout/", views.logout_view, name="logout"),
     path("homepage/", views.home_page_router, name='home_page'),
     path("login_page/", views.login_page, name="login_page"),
     path("unauth/", views.unauth_home_page, name="unauth_home_page"),
+    path('classes/create/', views.class_create, name='class_create'),
     path('classes/<slug:slug>/', views.class_detail, name='class_detail'),
     path('classes/<slug:slug>/add_required_tag/', views.add_required_tag, name='add_required_tag'),
     path('classes/<slug:slug>/unlink_required_tag/<int:tag_id>/', views.unlink_required_tag, name='unlink_required_tag'),
     path("profile/", views.profile, name='profile'),
-    path('classes/create/', views.class_create, name='class_create'),
     path('classes/<slug:slug>/material_create/', views.material_create, name='material_create'),
     path("messaging/", views.messaging, name='messaging'),
     path("lent_items/", views.lent_items, name='lent_items'),
@@ -33,5 +33,7 @@ urlpatterns = [
     path('collections', views.collection, name = 'collections'),
     path('collection/<int:collection_id>/', views.collection_detail, name='collection_detail'),
     path("profile/", views.profile, name="profile"),
-    path("profile/edit/", views.edit_profile, name="edit_profile")
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
+    path('collection/<int:collection_id>/edit/', views.edit_collection, name='edit_collection')
+
 ]
