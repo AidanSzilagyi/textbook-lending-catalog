@@ -37,17 +37,21 @@
     <div class="card mb-4">
       <div class="card-body">
         <form action="{% url 'requested_to_in_circulation' %}" method="post">
-          {% csrf_token %}
-          <fieldset>
-            <legend class="h2">Select which requests to accept or deny</legend>
-            {% for item in requested_items_items %}
-              <div class="form-check mb-2">
-                <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                <label class="form-check-label" for="item{{ forloop.counter }}">{{item}}</label>
-              </div>
-            {% endfor %}
-          </fieldset>
-          <button type="submit" class="btn btn-primary mt-3">Submit</button>
+
+=======
+            {%  csrf_token %}
+            <fieldset>
+                <legend><h1>Select which requests to accept or deny</h1></legend>
+                    {% for item in requested_items %}
+                        <div>
+                            <input type ="radio" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
+                            <label for="item{{ forloop.counter }}">{{item}}</label><br>
+                        </div>
+                {% endfor %}
+            </fieldset>
+            <input type="submit" name="yes" value="Yes">
+            <input type="submit" name="no" value="No">
+
         </form>
       </div>
     </div>
