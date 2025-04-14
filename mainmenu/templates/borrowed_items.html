@@ -18,6 +18,18 @@
   </div>
 
   {% if user.profile.userRole == 0 %}
+      <div class = "card mb-3">
+        <div class="card-body">
+            <fieldset>
+                <legend class="h1">List of borrowed_items</legend>
+                {% for item in borrowed_item_list %}
+                    <div class="form-check mb-3">
+                        <label class="form-check-label" for="item{{ forloop.counter }}">{{item}} -- Owner: {{ item.owner }} </label>
+                    </div>
+                {% endfor %}
+            </fieldset>
+        </div>
+      </div>
     <div class="card mb-4">
       <div class="card-body">
         <form action="{% url 'available_to_requested' %}" method="post">
@@ -27,7 +39,7 @@
             {% for item in available_items %}
               <div class="form-check mb-2">
                 <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                <label class="form-check-label" for="item{{ forloop.counter }}">{{item}}</label>
+                <label class="form-check-label" for="item{{ forloop.counter }}">{{item}} -- Owner: {{ item.owner }}</label>
               </div>
             {% endfor %}
           </fieldset>
@@ -47,7 +59,7 @@
                     {% for item in requested_items %}
                         <div>
                             <input type ="radio" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                            <label for="item{{ forloop.counter }}">{{item}}</label><br>
+                            <label for="item{{ forloop.counter }}">{{item}} -- {{ item.message_set.last.sender.username}}</label><br>
                         </div>
                 {% endfor %}
             </fieldset>
