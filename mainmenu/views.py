@@ -3,12 +3,19 @@ from django.contrib.messages.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
+from rest_framework.permissions import IsAuthenticated
+
+
 from .forms import ItemForm
-from .models import TestObject, Profile, Item, Class, Tag, ItemImage
+from .models import *
 from django.contrib.auth import logout
 from django.template import loader
 from django.urls import reverse
 from django.core.files.storage import default_storage
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from .models import Notification
+from .serializers import NotificationSerializer
 
 def index(request):
     try:
@@ -22,18 +29,25 @@ def logout_view(request):
     return redirect("index")
 
 def home_page_router(request):
+    print("In home_page_router")
     if request.user.is_authenticated:
+        print(f"User is authenticated, role: {request.user.profile.userRole}")
         if request.user.profile.userRole == 0:
+            print("Rendering home_page.html")
             return home_page(request)
         elif request.user.profile.userRole == 1:
+            print("Rendering librarian_home_page.html")
             return librarian_home_page(request)
+    print("User not authenticated, rendering unauth_home.html")
     return unauth_home_page(request)
 
 def unauth_home_page(request):
+    print("In unauth_home_page, rendering unauth_home.html")
     return render(request, 'unauth_home.html')
 
 @login_required
 def home_page(request):
+    print("In home_page, rendering home_page.html")
     context = {
         'tags': Tag.objects.all(),
         'items': Item.objects.all(),
@@ -42,6 +56,7 @@ def home_page(request):
 
 @login_required
 def librarian_home_page(request):
+    print("In librarian_home_page, rendering librarian_home_page.html")
     if request.method == 'POST':
         form = ItemForm(request.POST)
         if form.is_valid():
@@ -74,7 +89,9 @@ def upload_pfp(request):
 
 @login_required
 def messaging(request):
-    return render(request, "messaging.html")
+    received = Message.objects.filter(recipient=request.user).order_by('-timestamp')
+    sent = Message.objects.filter(sender=request.user).order_by('-timestamp')
+    return render(request, 'messaging.html', {'received': received, 'sent': sent})
 
 @login_required
 def lent_items(request):
@@ -99,8 +116,18 @@ def available_to_requested(request):
     else:
         selected_item.status = 'requested'
         selected_item.save()
+
+        Message.objects.create(
+            sender=request.user,
+            recipient=selected_item.owner,
+            item=selected_item,
+            content=f"{request.user.username} has requested to borrow your textbook: {selected_item.title}"
+        )
+
         return HttpResponseRedirect(reverse('home_page_router'))
 
+#https://stackoverflow.com/questions/866272/how-can-i-build-multiple-submit-buttons-django-form
+@login_required
 def requested_to_in_circulation(request):
     requested_items = Item.objects.filter(status='requested')
     try:
@@ -108,9 +135,36 @@ def requested_to_in_circulation(request):
     except (KeyError, Item.DoesNotExist):
         return render(request, "borrowed_items.html", {"requested_items": requested_items})
     else:
-        selected_item.status = 'in_circulation'
-        selected_item.save()
-        return HttpResponseRedirect(reverse('home_page_router'))
+        if 'yes' in request.POST:
+            selected_item.status = 'in_circulation'
+            selected_item.borrower = selected_item.message_set.filter(item=selected_item).last().sender  # 👈 Patron
+            selected_item.save()
+
+            patron = selected_item.borrower
+
+            Message.objects.create(
+                sender=request.user,  # owner
+                recipient=patron,
+                item=selected_item,
+                content=f"Your request to borrow '{selected_item.title}' has been accepted. You now have it in circulation!"
+            )
+
+            return HttpResponseRedirect(reverse('home_page_router'))
+
+        elif 'no' in request.POST:
+            selected_item.status = 'available'
+            selected_item.save()
+
+            patron_message = selected_item.message_set.filter(item=selected_item).last()
+            if patron_message:
+                Message.objects.create(
+                    sender=request.user,  # owner
+                    recipient=patron_message.sender,
+                    item=selected_item,
+                    content=f"Your request to borrow '{selected_item.title}' has been denied. The item is now available again."
+                )
+
+            return HttpResponseRedirect(reverse('home_page_router'))
 
 @login_required
 def marketplace(request):
@@ -125,6 +179,7 @@ def librarian_settings(request):
         "patron_list": patron_list,
     }
     return render(request, "librarian_settings.html", context )
+
 
 
 def class_detail(request, slug):
@@ -219,11 +274,13 @@ def add_item_submit(request):
         location = request.POST.get('location', '')
         description = request.POST.get('description', '')
 
+
         new_item = Item(
             title=title,
             status=status,
             location=location,
-            description=description
+            description=description,
+            owner=request.user
         )
         new_item.save()
 
@@ -303,6 +360,7 @@ def add_required_tag(request, slug):
     return redirect('class_detail', slug=slug)
 
 
+
 @login_required
 def item_post(request):
     if request.method == 'POST':
@@ -325,3 +383,10 @@ def item_detail(request, uuid):
     return render(request, 'item_detail.html', {
         'item': item
     })
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def unread_notifications(request):
+    qs = Notification.objects.filter(user=request.user, read=False)
+    serializer = NotificationSerializer(qs, many=True)
+    return Response(serializer.data)
