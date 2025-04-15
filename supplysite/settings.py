@@ -18,6 +18,7 @@ from pathlib import Path
 SECRET_KEY = 'django-insecure-flmnm$d)xp8sd$=oy_p_yyx_nsrfl%ok8gla&tj7+k7l*9&f*4'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+import os
 DEBUG = not (os.getenv("NO_DEBUG", None))
 
 ALLOWED_HOSTS = [
