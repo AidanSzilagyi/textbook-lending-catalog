@@ -522,6 +522,7 @@ def edit_profile(request):
 def submit_item_review(request, item_uuid):
     item = get_object_or_404(Item, uuid=item_uuid)
     user_review = ItemReview.objects.filter(reviewer=request.user, item=item).first()
+    next_url = request.GET.get('next', None)
     
     if request.method == 'POST':
         form = ItemReviewForm(request.POST)
@@ -540,6 +541,8 @@ def submit_item_review(request, item_uuid):
                     rating=rating,
                     review_text=form.cleaned_data['review_text']
                 )
+            if next_url:
+                return redirect(next_url)
             return redirect('item_detail', uuid=item_uuid)
     else:
         # Pre-fill form with existing review data if editing
@@ -555,13 +558,15 @@ def submit_item_review(request, item_uuid):
         'form': form,
         'item': item,
         'user_review': user_review,
-        'review_type': 'item'
+        'review_type': 'item',
+        'next_url': next_url
     })
 
 @login_required
 def submit_user_review(request, user_id):
     reviewed_user = get_object_or_404(User, id=user_id)
     user_review = UserReview.objects.filter(reviewer=request.user, reviewed_user=reviewed_user).first()
+    next_url = request.GET.get('next', None)
     
     if request.method == 'POST':
         form = UserReviewForm(request.POST)
@@ -580,6 +585,8 @@ def submit_user_review(request, user_id):
                     rating=rating,
                     review_text=form.cleaned_data['review_text']
                 )
+            if next_url:
+                return redirect(next_url)
             return redirect('user_profile', user_id=user_id)
     else:
         # Pre-fill form with existing review data if editing
@@ -595,7 +602,8 @@ def submit_user_review(request, user_id):
         'form': form,
         'reviewed_user': reviewed_user,
         'user_review': user_review,
-        'review_type': 'user'
+        'review_type': 'user',
+        'next_url': next_url
     })
 
 @login_required
