@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Avg
-from .forms import ProfileForm, ItemReviewForm
+from .forms import ProfileForm, ItemReviewForm, UserReviewForm, DueDateForm
 
 from .forms import ItemForm, CollectionForm
 from .models import *
@@ -187,12 +187,22 @@ def lent_items(request):
 
 @login_required
 def borrowed_items(request):
-    borrowed_item_list = Item.objects.filter(borrower=request.user, status='in_circulation')
-    available_items = Item.objects.filter(status='available')
-    context = {
-        'borrowed_item_list': borrowed_item_list,
-        'available_items': available_items,
-    }
+    if request.user.profile.userRole == 1:  # If user is a librarian
+        borrowed_item_list = Item.objects.filter(owner=request.user, status='in_circulation')
+        requested_items = Item.objects.filter(owner=request.user, status='requested')
+        available_items = Item.objects.filter(status='available')
+        context = {
+            'borrowed_item_list': borrowed_item_list,
+            'requested_items': requested_items,
+            'available_items': available_items,
+        }
+    else:  # If user is a patron
+        borrowed_item_list = Item.objects.filter(borrower=request.user, status='in_circulation')
+        available_items = Item.objects.filter(status='available')
+        context = {
+            'borrowed_item_list': borrowed_item_list,
+            'available_items': available_items,
+        }
     return render(request, "borrowed_items.html", context)
 
 def available_to_requested(request):
@@ -224,20 +234,29 @@ def requested_to_in_circulation(request):
         return render(request, "borrowed_items.html", {"requested_items": requested_items})
     else:
         if 'yes' in request.POST:
-            selected_item.status = 'in_circulation'
-            selected_item.borrower = selected_item.message_set.filter(item=selected_item).last().sender  # 👈 Patron
-            selected_item.save()
+            form = DueDateForm(request.POST)
+            if form.is_valid():
+                selected_item.status = 'in_circulation'
+                selected_item.borrower = selected_item.message_set.filter(item=selected_item).last().sender  # 👈 Patron
+                selected_item.due_date = form.cleaned_data['due_date']
+                selected_item.save()
 
-            patron = selected_item.borrower
-            patron.borrowed_items.add(selected_item)
+                patron = selected_item.borrower
+                patron.borrowed_items.add(selected_item)
 
-            Message.objects.create(
-                sender=request.user,  # owner
-                recipient=patron,
-                item=selected_item,
-                content=f"Your request to borrow '{selected_item.title}' has been accepted. You now have it in circulation!"
-            )
-            return HttpResponseRedirect(reverse('home_page_router'))
+                Message.objects.create(
+                    sender=request.user,  # owner
+                    recipient=patron,
+                    item=selected_item,
+                    content=f"Your request to borrow '{selected_item.title}' has been accepted. The item is due back on {selected_item.due_date.strftime('%B %d, %Y')}."
+                )
+                return HttpResponseRedirect(reverse('home_page_router'))
+            else:
+                # If form is invalid, show the form with errors
+                return render(request, "set_due_date.html", {
+                    "form": form,
+                    "item": selected_item
+                })
 
         elif 'no' in request.POST:
             selected_item.status = 'available'
@@ -291,8 +310,12 @@ def patron_to_librarian(request):
 
 @login_required
 def required_materials(request):
-    classes = Class.objects.exclude(slug='')
-    return render(request, "required_materials.html", {"classes": classes})
+    q = request.GET.get('q', '')
+    if q:
+        classes = Class.objects.filter(name__icontains=q) | Class.objects.filter(description__icontains=q)
+    else:
+        classes = Class.objects.all()
+    return render(request, 'required_materials.html', {'classes': classes, 'q': q})
 
 @login_required
 def add_item(request):
@@ -531,6 +554,7 @@ def edit_profile(request):
 def submit_item_review(request, item_uuid):
     item = get_object_or_404(Item, uuid=item_uuid)
     user_review = ItemReview.objects.filter(reviewer=request.user, item=item).first()
+    next_url = request.GET.get('next', None)
     
     if request.method == 'POST':
         form = ItemReviewForm(request.POST)
@@ -549,13 +573,15 @@ def submit_item_review(request, item_uuid):
                     rating=rating,
                     review_text=form.cleaned_data['review_text']
                 )
+            if next_url:
+                return redirect(next_url)
             return redirect('item_detail', uuid=item_uuid)
     else:
         # Pre-fill form with existing review data if editing
         initial_data = {}
         if user_review:
             initial_data = {
-                'rating': user_review.rating,
+                'rating': str(user_review.rating),  # Convert to string for radio button
                 'review_text': user_review.review_text
             }
         form = ItemReviewForm(initial=initial_data)
@@ -563,37 +589,53 @@ def submit_item_review(request, item_uuid):
     return render(request, 'submit_review.html', {
         'form': form,
         'item': item,
-        'user_review': user_review
+        'user_review': user_review,
+        'review_type': 'item',
+        'next_url': next_url
     })
 
 @login_required
 def submit_user_review(request, user_id):
     reviewed_user = get_object_or_404(User, id=user_id)
+    user_review = UserReview.objects.filter(reviewer=request.user, reviewed_user=reviewed_user).first()
+    next_url = request.GET.get('next', None)
     
     if request.method == 'POST':
         form = UserReviewForm(request.POST)
         if form.is_valid():
-            # Check if user has already reviewed this user
-            existing_review = UserReview.objects.filter(reviewer=request.user, reviewed_user=reviewed_user).first()
-            if existing_review:
-                existing_review.rating = form.cleaned_data['rating']
-                existing_review.review_text = form.cleaned_data['review_text']
-                existing_review.save()
+            rating = int(form.cleaned_data['rating'])
+            if user_review:
+                # Update existing review
+                user_review.rating = rating
+                user_review.review_text = form.cleaned_data['review_text']
+                user_review.save()
             else:
+                # Create new review
                 UserReview.objects.create(
                     reviewer=request.user,
                     reviewed_user=reviewed_user,
-                    rating=form.cleaned_data['rating'],
+                    rating=rating,
                     review_text=form.cleaned_data['review_text']
                 )
+            if next_url:
+                return redirect(next_url)
             return redirect('user_profile', user_id=user_id)
     else:
-        form = UserReviewForm()
+        # Pre-fill form with existing review data if editing
+        initial_data = {}
+        if user_review:
+            initial_data = {
+                'rating': str(user_review.rating),  # Convert to string for radio button
+                'review_text': user_review.review_text
+            }
+        form = UserReviewForm(initial=initial_data)
     
     return render(request, 'submit_review.html', {
         'form': form,
         'reviewed_user': reviewed_user,
-        'review_type': 'user'
+        'user_review': user_review,
+        'review_type': 'user',
+        'next_url': next_url
     })
 
 @login_required
