@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q
+from django.db.models import Q, Avg
 from .forms import ProfileForm, ItemReviewForm
 
 from .forms import ItemForm, CollectionForm
@@ -17,6 +17,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Notification, Collection, CollectionAccessRequest
 from .serializers import NotificationSerializer
+from django.contrib import messages
 
 # New view: the landing login page
 def login_page(request):
@@ -130,8 +131,35 @@ def librarian_home_page(request):
     })
 
 @login_required
-def profile(request):
-    return render(request, "profile.html")
+def profile(request, user_id=None):
+    if user_id:
+        user = get_object_or_404(User, id=user_id)
+    else:
+        user = request.user
+    
+    # Fetch all reviews for this user
+    user_reviews = UserReview.objects.filter(reviewed_user=user)
+    avg_user_rating = user_reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    if avg_user_rating:
+        avg_user_rating = round(avg_user_rating, 1)
+    
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=user.profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('profile')
+    else:
+        form = ProfileForm(instance=user.profile)
+    
+    context = {
+        'form': form,
+        'profile_user': user,
+        'is_own_profile': user == request.user,
+        'user_reviews': user_reviews,
+        'avg_user_rating': avg_user_rating,
+    }
+    return render(request, 'mainmenu/profile.html', context)
 
 @login_required
 def upload_pfp(request):
@@ -149,17 +177,21 @@ def messaging(request):
 
 @login_required
 def lent_items(request):
-    return render(request, "lent_items.html")
+    lent_items_list = Item.objects.filter(owner=request.user, status='in_circulation')
+    listed_items_list = Item.objects.filter(owner=request.user, status='available')
+    context = {
+        'lent_items_list': lent_items_list,
+        'listed_items_list': listed_items_list,
+    }
+    return render(request, "lent_items.html", context)
 
 @login_required
 def borrowed_items(request):
+    borrowed_item_list = Item.objects.filter(borrower=request.user, status='in_circulation')
     available_items = Item.objects.filter(status='available')
-    requested_items = Item.objects.filter(status='requested')
-    borrowed_item_list = request.user.borrowed_items.all().order_by('-id')
-    context ={
-        'available_items': available_items,
-        'requested_items': requested_items,
+    context = {
         'borrowed_item_list': borrowed_item_list,
+        'available_items': available_items,
     }
     return render(request, "borrowed_items.html", context)
 
@@ -417,21 +449,21 @@ def unread_notifications(request):
     return Response(serializer.data)
 
 def collection(request):
-
     if request.method == "POST":
         form = CollectionForm(request.POST)
         if form.is_valid():
             collection = form.save(commit=False)
-            collection.creator = request.user.profile  # Assign logged-in user as creator
+            # Always set the creator to the current user's profile
+            if not collection.creator_id:
+                collection.creator = request.user.profile
             collection.save()
             form.save_m2m()  # Save ManyToMany relationships
             return redirect('collections')# Redirect to homepage after submission
-
     else:
         form = CollectionForm()
 
     collections = Collection.objects.all()
-    user_collections = Collection.objects.filter(creator = request.user.profile)
+    user_collections = Collection.objects.filter(creator=request.user.profile)
     items = Item.objects.all()
 
     return render(request, 'collection.html', {'form': form, 'collections': collections, 'items' : items, 'user_collections': user_collections})
@@ -447,7 +479,11 @@ def collection_detail(request, collection_id):
 def edit_collection(request, collection_id):
     collection = get_object_or_404(Collection, pk=collection_id)
 
-    if request.user.profile != collection.creator:
+    # Only allow editing if:
+    # 1. User is the creator of the collection, OR
+    # 2. User is a librarian AND has access to the collection
+    if not (request.user.profile == collection.creator or 
+            (request.user.profile.userRole == 1 and request.user.profile in collection.access.all())):
         return HttpResponseForbidden("You do not have permission to edit this collection.")
 
     if request.method == 'POST':
@@ -486,9 +522,10 @@ def submit_item_review(request, item_uuid):
     if request.method == 'POST':
         form = ItemReviewForm(request.POST)
         if form.is_valid():
+            rating = int(form.cleaned_data['rating'])
             if user_review:
                 # Update existing review
-                user_review.rating = form.cleaned_data['rating']
+                user_review.rating = rating
                 user_review.review_text = form.cleaned_data['review_text']
                 user_review.save()
             else:
@@ -496,7 +533,7 @@ def submit_item_review(request, item_uuid):
                 ItemReview.objects.create(
                     reviewer=request.user,
                     item=item,
-                    rating=form.cleaned_data['rating'],
+                    rating=rating,
                     review_text=form.cleaned_data['review_text']
                 )
             return redirect('item_detail', uuid=item_uuid)
@@ -605,3 +642,13 @@ def user_reviews(request):
         'item_reviews': item_reviews,
         'user_reviews': user_reviews
     })
+
+@login_required
+def delete_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+    if collection.creator != request.user.profile:
+        return HttpResponseForbidden("You do not have permission to delete this collection.")
+    if request.method == "POST":
+        collection.delete()
+        return redirect('collections')
+    return render(request, "confirm_delete_collection.html", {"collection": collection})

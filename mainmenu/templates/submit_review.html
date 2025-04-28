@@ -11,14 +11,16 @@
         
         <div class="mb-3">
           <label class="form-label">Rating</label>
-          <div class="rating">
-            {% for value, label in form.rating.field.choices %}
-              <input type="radio" name="rating" id="rating{{ value }}" value="{{ value }}" 
-                     {% if form.rating.value == value %}checked{% endif %}>
-              <label for="rating{{ value }}" class="star">
-                <i class="fas fa-star"></i>
-              </label>
-            {% endfor %}
+          <div style="text-align: left; width: fit-content;">
+            <div class="rating">
+              {% for value, label in form.rating.field.choices %}
+                <input type="radio" name="rating" id="rating{{ value }}" value="{{ value }}" 
+                       {% if form.rating.value == value %}checked{% endif %}>
+                <label for="rating{{ value }}" class="star">
+                  <i class="fas fa-star"></i>
+                </label>
+              {% endfor %}
+            </div>
           </div>
           {% if form.rating.errors %}
             <div class="invalid-feedback d-block">
@@ -49,8 +51,10 @@
 <style>
 .rating {
   display: flex;
+  justify-content: flex-start;
+  align-items: center;
   flex-direction: row-reverse;
-  justify-content: flex-end;
+  margin-left: 0;
 }
 
 .rating input {
@@ -62,6 +66,7 @@
   font-size: 2rem;
   color: #ddd;
   transition: color 0.2s;
+  margin-right: 5px;
 }
 
 .rating label:hover,

@@ -67,7 +67,7 @@ class ProfileForm(forms.ModelForm):
 
 class ReviewForm(forms.Form):
     rating = forms.ChoiceField(
-        choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')],
+        choices=[(5, '5 Stars'), (4, '4 Stars'), (3, '3 Stars'), (2, '2 Stars'), (1, '1 Star')],
         widget=forms.RadioSelect,
         required=True
     )

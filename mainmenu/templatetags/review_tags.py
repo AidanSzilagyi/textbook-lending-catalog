@@ -5,6 +5,7 @@ register = template.Library()
 
 @register.filter
 def avg_rating(reviews):
-    if not reviews:
-        return 0
-    return round(reviews.aggregate(Avg('rating'))['rating__avg'] or 0, 1) 
+    """Calculate the average rating from a queryset of reviews."""
+    if reviews.exists():
+        return round(reviews.aggregate(Avg('rating'))['rating__avg'], 1)
+    return 0 
