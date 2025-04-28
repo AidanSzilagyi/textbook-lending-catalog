@@ -8,10 +8,20 @@
 </head>
 <body class="container mt-5">
 
+
 <h2>{{ collection.name }}</h2>
 <p>{{ collection.description }}</p>
+<p>People Who have permissions {{ collection.creator}} {% if collection.access %}
+{% for c in collection.access.all %}
+    , {{ c.name }}
+    {% endfor %}
+{% endif %}
+</p>
 
 {% if user.profile in collection.access.all or collection.visibility == 'public' or collection.creator == user.profile or user.profile.userRole == 1 %}
+    <form method="get" class="mb-3">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search collections by title" class="form-control" />
+    </form>
     <h3>Items in this Collection:</h3>
     <ul>
         {% for item in items %}

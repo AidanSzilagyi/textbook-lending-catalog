@@ -72,6 +72,9 @@
     </div>
 </div>
 
+<form method="get" class="mb-3">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search collections by title" class="form-control" />
+</form>
 <!-- Your Collections -->
 <h2 class="mt-4">Your Collections</h2>
 {% if user_collections %}
@@ -92,22 +95,39 @@
     <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search collections by title" class="form-control" />
 </form>
 -->
-{% if collections %}
-    <ul>
-        {% for c in collections %}
-            {% if c.creator != user.profile %}
-                <li>
-                    <strong><a href="{% url 'collection_detail' c.id %}">{{ c.name }}</a></strong> - {{ c.description }}
-                    <br>
-                    <small class="text-muted">Created by: {{ c.creator.user.username }}</small>
-                </li>
-            {% endif %}
-        {% endfor %}
-    </ul>
+{% if user.profile.userRole == 1 %}
+    {% if collections %}
+        <ul>
+            {% for c in collections %}
+                {% if c.creator != user.profile %}
+                    <li>
+                        <strong><a href="{% url 'collection_detail' c.id %}">{{ c.name }}</a></strong> - {{ c.description }}
+                        <br>
+                        <small class="text-muted">Created by: {{ c.creator.user.username }}</small>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No collections found.</p>
+    {% endif %}
 {% else %}
-    <p>No public collections found.</p>
+    {% if public_collections %}
+        <ul>
+            {% for c in public_collections %}
+                {% if c.creator != user.profile %}
+                    <li>
+                        <strong><a href="{% url 'collection_detail' c.id %}">{{ c.name }}</a></strong> - {{ c.description }}
+                        <br>
+                        <small class="text-muted">Created by: {{ c.creator.user.username }}</small>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No collections found.</p>
+    {% endif %}
 {% endif %}
-
 <!-- Back to Homepage -->
 <div class="mt-4">
     <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
