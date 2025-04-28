@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load review_tags %}
+{% load static %}
 
 {% block title %}Home Page{% endblock %}
 
@@ -20,13 +22,12 @@
     flex-grow: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 10px;
+    padding: 20px;
     border: 2px solid #42EAFF;
     border-radius: 10px;
     margin-top: 20px;
   }
 
-  /* Scrollbar */
   .scroll-container::-webkit-scrollbar {
     width: 6px;
   }
@@ -49,11 +50,22 @@
     font-size: 0.75rem;
   }
 
-  /* Navbar Link Styling - Updated Bigger */
+  .card-title {
+    font-weight: bold;
+  }
+
+  .card {
+    transition: transform 0.2s;
+  }
+  .card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+
   .navbar-nav .nav-link {
     color: #444;
     font-weight: 600;
-    font-size: 1.1rem; /* Make nav links bigger */
+    font-size: 1.1rem;
     padding-left: 15px;
     padding-right: 15px;
   }
@@ -62,7 +74,6 @@
     text-decoration: underline;
   }
 
-  /* Search Button Styling */
   .btn-primary {
     background-color: #42EAFF;
     border-color: #42EAFF;
@@ -73,6 +84,15 @@
     background-color: #4272FF;
     border-color: #4272FF;
     color: white;
+  }
+
+  .rating-stars {
+    color: gold;
+  }
+
+  .default-image {
+    height: 180px;
+    object-fit: cover;
   }
 </style>
 {% endblock %}
@@ -94,21 +114,64 @@
   </div>
 
   <div class="scroll-container">
-    <div class="list-group">
+    <div class="row">
       {% for item in items %}
-      <a href="{% url 'item_detail' item.uuid %}" class="list-group-item list-group-item-action">
-        <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{ item.title }}</h5>
-          <small>{{ item.get_status_display }}</small>
-        </div>
-        <p class="mb-1">
-          {% for tag in item.tags.all %}
-            <span class="badge">{{ tag.name }}</span>
-          {% endfor %}
-        </p>
-      </a>
+      <div class="col-md-4 mb-4">
+        <a href="{% url 'item_detail' item.uuid %}" class="text-decoration-none text-reset">
+          <div class="card h-100">
+            {% if USE_AWS and item.images.first %}
+              <img src="{{ item.images.first.image.url }}" class="card-img-top default-image" alt="{{ item.title }}">
+            {% else %}
+              <img src="{% static 'mainmenu/images/default_textbook.png' %}" class="card-img-top default-image" alt="Default textbook image">
+            {% endif %}
+
+            <div class="card-body">
+              <h5 class="card-title">{{ item.title }}</h5>
+              <p class="mb-1">
+                {% for tag in item.tags.all %}
+                  <span class="badge">{{ tag.name }}</span>
+                {% endfor %}
+              </p>
+              <p class="mb-1"><small>Owner: <span class="text-muted">{{ item.owner }}</span></small></p>
+              <p class="mb-1">
+                <small>Status: 
+                {% if item.status == 'available' %}
+                  <span class="badge bg-success">{{ item.get_status_display }}</span>
+                {% elif item.status == 'in_circulation' %}
+                  <span class="badge bg-primary">{{ item.get_status_display }}</span>
+                {% elif item.status == 'repairing' %}
+                  <span class="badge bg-warning text-dark">{{ item.get_status_display }}</span>
+                {% elif item.status == 'lost' %}
+                  <span class="badge bg-danger">{{ item.get_status_display }}</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                {% endif %}
+                </small>
+              </p>
+              <p class="mb-1">
+                {% if item.reviews.exists %}
+                  <span class="rating-stars">
+                    {% for i in "12345"|make_list %}
+                      {% if forloop.counter <= item.reviews.all|avg_rating %}
+                        <i class="fas fa-star"></i>
+                      {% else %}
+                        <i class="far fa-star"></i>
+                      {% endif %}
+                    {% endfor %}
+                  </span>
+                  <small>({{ item.reviews.all|avg_rating|floatformat:1 }}/5)</small>
+                {% else %}
+                  <small class="text-muted">No ratings yet</small>
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
       {% empty %}
-      <p>No materials posted yet.</p>
+      <div class="col-12">
+        <div class="alert alert-info">No materials posted yet.</div>
+      </div>
       {% endfor %}
     </div>
   </div>

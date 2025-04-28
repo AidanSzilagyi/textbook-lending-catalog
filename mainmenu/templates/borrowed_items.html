@@ -1,30 +1,83 @@
-<!DOCTYPE html>
 {% extends "base.html" %}
 
+{% block title %}Borrowed Items{% endblock %}
+
+{% block extra_css %}
+<style>
+  html, body {
+    height: 100%;
+    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, legend {
+    font-weight: bold;
+  }
+
+  .page-header {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .alert-info {
+    background-color: #d4f1ff;
+    color: #055160;
+    border: 1px solid #bee6fd;
+  }
+
+  .btn-homepage {
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+
+  fieldset {
+    margin-top: 20px;
+  }
+
+  .form-check-label {
+    font-weight: 500;
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 1.1rem;
+  }
+
+  .card-body {
+    padding: 25px;
+  }
+
+  legend.h2 {
+    font-size: 1.5rem;
+    color: #4272FF;
+  }
+
+  input[type="submit"] {
+    margin-right: 10px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="fixed-top bg-light text-center py-3">
+<div class="container d-flex justify-content-between align-items-center mt-2">
+  <a href="{% url 'home_page_router' %}" class="btn btn-primary btn-homepage">&larr; Back to Homepage</a>
+  <p class="mb-0">Logged in as {{ user.email }}</p>
+</div>
+
+<div class="page-header">
   <h1>Borrowed Items</h1>
 </div>
 
-<div class="container mt-5 pt-5">
-  <div class="row mb-4">
-    <div class="col text-end">
-      <p class="lead">Logged in as {{ user.username }}</p>
-    </div>
-  </div>
+<div class="container mt-2">
 
-  <div class="mt-4">
-    <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
-  </div>
-
-  <div class="card mb-3">
+  <div class="card mb-4">
     <div class="card-body">
       <h2 class="h4 mb-4">Currently Borrowed Items</h2>
       {% if borrowed_item_list %}
         <div class="row">
           {% for item in borrowed_item_list %}
             <div class="col-md-6 mb-4">
-              <div class="card">
+              <div class="card shadow-sm">
                 <div class="card-body">
                   <h5 class="card-title">{{ item.title }}</h5>
                   <p class="card-text">{{ item.description }}</p>
@@ -42,11 +95,11 @@
                   </div>
                   
                   <div class="d-flex justify-content-between align-items-center">
-                    <a href="{% url 'item_detail' item.uuid %}" class="btn btn-primary">View Details</a>
+                    <a href="{% url 'item_detail' item.uuid %}" class="btn btn-primary btn-sm">View Details</a>
                     {% if item.reviews.all %}
-                      <span class="text-muted">You've already reviewed this item</span>
+                      <span class="text-muted small">Already reviewed</span>
                     {% else %}
-                      <a href="{% url 'submit_item_review' item.uuid %}" class="btn btn-outline-primary">Write Review</a>
+                      <a href="{% url 'submit_item_review' item.uuid %}" class="btn btn-outline-primary btn-sm">Write Review</a>
                     {% endif %}
                   </div>
                 </div>
@@ -68,11 +121,13 @@
         <form action="{% url 'available_to_requested' %}" method="post">
           {% csrf_token %}
           <fieldset>
-            <legend class="h2">Select which item you want to send a request for</legend>
+            <legend class="h2">Select an Item to Request</legend>
             {% for item in available_items %}
               <div class="form-check mb-2">
                 <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                <label class="form-check-label" for="item{{ forloop.counter }}">{{ item.title }} -- Owner: {{ item.owner.username }}</label>
+                <label class="form-check-label" for="item{{ forloop.counter }}">
+                  {{ item.title }} -- Owner: {{ item.owner.username }}
+                </label>
               </div>
             {% empty %}
               <p class="text-muted">No available items to request.</p>
@@ -88,22 +143,26 @@
     <div class="card mb-4">
       <div class="card-body">
         <form action="{% url 'requested_to_in_circulation' %}" method="post">
-            {%  csrf_token %}
-            <fieldset>
-                <legend><h1>Select which requests to accept or deny</h1></legend>
-                    {% for item in requested_items %}
-                        <div>
-                            <input type ="radio" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                            <label for="item{{ forloop.counter }}">{{item}} -- {{ item.message_set.last.sender.username}}</label><br>
-                        </div>
-                {% endfor %}
-            </fieldset>
-            <input type="submit" name="yes" value="Yes">
-            <input type="submit" name="no" value="No">
-
+          {% csrf_token %}
+          <fieldset>
+            <legend class="h2">Review Requests</legend>
+            {% for item in requested_items %}
+              <div class="form-check mb-2">
+                <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
+                <label class="form-check-label" for="item{{ forloop.counter }}">
+                  {{ item }} -- {{ item.message_set.last.sender.username }}
+                </label>
+              </div>
+            {% empty %}
+              <p class="text-muted">No requests pending.</p>
+            {% endfor %}
+          </fieldset>
+          <button type="submit" name="yes" class="btn btn-success mt-3">Accept</button>
+          <button type="submit" name="no" class="btn btn-danger mt-3">Deny</button>
         </form>
       </div>
     </div>
   {% endif %}
+
 </div>
 {% endblock %}
