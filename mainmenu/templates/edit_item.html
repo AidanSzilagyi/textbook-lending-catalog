@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <h1 class="mb-4">Edit Item: {{ item.title }}</h1>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+          <label for="{{ form.title.id_for_label }}" class="form-label">Title</label>
+          {{ form.title }}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+          {{ form.status }}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.location.id_for_label }}" class="form-label">Location</label>
+          {{ form.location }}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+          {{ form.description }}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.tags.id_for_label }}" class="form-label">Tags</label>
+          {{ form.tags }}
+          <div class="form-text">Hold Ctrl (Windows) or ⌘ (Mac) to select multiple tags.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.images.id_for_label }}" class="form-label">Images</label>
+          {{ form.images }}
+          <div class="form-text">Current images will be replaced if new ones are uploaded.</div>
+        </div>
+
+        {% if form.errors %}
+          <div class="alert alert-danger">
+            Please correct the errors below:
+            {{ form.errors }}
+          </div>
+        {% endif %}
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <a href="{% url 'item_detail' uuid=item.uuid %}" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %} 

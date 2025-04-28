@@ -30,10 +30,13 @@ urlpatterns = [
     path('requested_to_in_circulation/', views.requested_to_in_circulation, name='requested_to_in_circulation'),
     path('item_post/', views.item_post, name='item_post'),
     path('items/<uuid:uuid>/', views.item_detail, name='item_detail'),
+    path('items/<uuid:uuid>/delete/', views.delete_item, name='delete_item'),
+    path('items/<uuid:uuid>/edit/', views.edit_item, name='edit_item'),
+    path('items/<uuid:item_uuid>/review/', views.submit_item_review, name='submit_item_review'),
     path('collections', views.collection, name = 'collections'),
     path('collection/<int:collection_id>/', views.collection_detail, name='collection_detail'),
     path("profile/", views.profile, name="profile"),
     path("profile/edit/", views.edit_profile, name="edit_profile"),
-    path('collection/<int:collection_id>/edit/', views.edit_collection, name='edit_collection')
-
+    path('collection/<int:collection_id>/edit/', views.edit_collection, name='edit_collection'),
+    path('reviews/', views.user_reviews, name='user_reviews')
 ]

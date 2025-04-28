@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-from .forms import ProfileForm
+from .forms import ProfileForm, ItemReviewForm
 
 from .forms import ItemForm, CollectionForm
 from .models import *
@@ -401,8 +401,12 @@ def item_post(request):
 @login_required
 def item_detail(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
+    user_review = None
+    if request.user.is_authenticated:
+        user_review = ItemReview.objects.filter(reviewer=request.user, item=item).first()
     return render(request, 'item_detail.html', {
-        'item': item
+        'item': item,
+        'user_review': user_review
     })
 
 @api_view(['GET'])
@@ -473,3 +477,131 @@ def edit_profile(request):
     else:
         form = ProfileForm(instance=profile)
     return render(request, 'edit_profile.html', {'form': form})
+
+@login_required
+def submit_item_review(request, item_uuid):
+    item = get_object_or_404(Item, uuid=item_uuid)
+    user_review = ItemReview.objects.filter(reviewer=request.user, item=item).first()
+    
+    if request.method == 'POST':
+        form = ItemReviewForm(request.POST)
+        if form.is_valid():
+            if user_review:
+                # Update existing review
+                user_review.rating = form.cleaned_data['rating']
+                user_review.review_text = form.cleaned_data['review_text']
+                user_review.save()
+            else:
+                # Create new review
+                ItemReview.objects.create(
+                    reviewer=request.user,
+                    item=item,
+                    rating=form.cleaned_data['rating'],
+                    review_text=form.cleaned_data['review_text']
+                )
+            return redirect('item_detail', uuid=item_uuid)
+    else:
+        # Pre-fill form with existing review data if editing
+        initial_data = {}
+        if user_review:
+            initial_data = {
+                'rating': user_review.rating,
+                'review_text': user_review.review_text
+            }
+        form = ItemReviewForm(initial=initial_data)
+    
+    return render(request, 'submit_review.html', {
+        'form': form,
+        'item': item,
+        'user_review': user_review
+    })
+
+@login_required
+def submit_user_review(request, user_id):
+    reviewed_user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        form = UserReviewForm(request.POST)
+        if form.is_valid():
+            # Check if user has already reviewed this user
+            existing_review = UserReview.objects.filter(reviewer=request.user, reviewed_user=reviewed_user).first()
+            if existing_review:
+                existing_review.rating = form.cleaned_data['rating']
+                existing_review.review_text = form.cleaned_data['review_text']
+                existing_review.save()
+            else:
+                UserReview.objects.create(
+                    reviewer=request.user,
+                    reviewed_user=reviewed_user,
+                    rating=form.cleaned_data['rating'],
+                    review_text=form.cleaned_data['review_text']
+                )
+            return redirect('user_profile', user_id=user_id)
+    else:
+        form = UserReviewForm()
+    
+    return render(request, 'submit_review.html', {
+        'form': form,
+        'reviewed_user': reviewed_user,
+        'review_type': 'user'
+    })
+
+@login_required
+def delete_item(request, uuid):
+    item = get_object_or_404(Item, uuid=uuid)
+    
+    # Check if user is a librarian and the owner of the item
+    if request.user.profile.userRole != 1 or item.owner != request.user:
+        return HttpResponseForbidden("You do not have permission to delete this item.")
+    
+    if request.method == 'POST':
+        item.delete()
+        return redirect('marketplace')
+    
+    return HttpResponseForbidden("Invalid request method.")
+
+@login_required
+def edit_item(request, uuid):
+    item = get_object_or_404(Item, uuid=uuid)
+    
+    # Check if user is a librarian and the owner of the item
+    if request.user.profile.userRole != 1 or item.owner != request.user:
+        return HttpResponseForbidden("You do not have permission to edit this item.")
+    
+    # Check if item is available
+    if item.status != Item.STATUS_AVAILABLE:
+        return HttpResponseForbidden("You can only edit available items.")
+    
+    if request.method == 'POST':
+        form = ItemForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            item = form.save()
+            
+            # Handle image uploads
+            if request.FILES.getlist('images'):
+                # Remove existing images
+                item.images.all().delete()
+                # Add new images
+                for f in request.FILES.getlist('images'):
+                    img = ItemImage.objects.create(image=f)
+                    item.images.add(img)
+            
+            return redirect('item_detail', uuid=uuid)
+    else:
+        form = ItemForm(instance=item)
+    
+    return render(request, 'edit_item.html', {
+        'form': form,
+        'item': item
+    })
+
+@login_required
+def user_reviews(request):
+    # Get all reviews by the current user
+    item_reviews = ItemReview.objects.filter(reviewer=request.user).order_by('-created_at')
+    user_reviews = UserReview.objects.filter(reviewer=request.user).order_by('-created_at')
+    
+    return render(request, 'user_reviews.html', {
+        'item_reviews': item_reviews,
+        'user_reviews': user_reviews
+    })

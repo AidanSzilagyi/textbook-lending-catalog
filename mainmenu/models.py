@@ -181,6 +181,36 @@ class Message(models.Model):
     def __str__(self):
         return f"From {self.sender} to {self.recipient}: {self.content[:30]}"
 
+class ItemReview(models.Model):
+    rating = models.IntegerField(choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')])
+    review_text = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='reviews')
+    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='item_reviews_given')
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('reviewer', 'item')
+
+    def __str__(self):
+        return f"{self.reviewer.username}'s review of {self.item.title}"
+
+class UserReview(models.Model):
+    rating = models.IntegerField(choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')])
+    review_text = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    reviewed_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews_received')
+    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_reviews_given')
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('reviewer', 'reviewed_user')
+
+    def __str__(self):
+        return f"{self.reviewer.username}'s review of {self.reviewed_user.username}"
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
