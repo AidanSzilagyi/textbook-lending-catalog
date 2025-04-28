@@ -273,10 +273,10 @@ def requested_to_in_circulation(request):
 
             return HttpResponseRedirect(reverse('home_page_router'))
 
-@login_required
-def marketplace(request):
-    items = Item.objects.all()
-    return render(request, "marketplace.html", {"items": items})
+# @login_required
+# def marketplace(request):
+#     items = Item.objects.all()
+#     return render(request, "marketplace.html", {"items": items})
 
 @login_required
 def librarian_settings(request):
@@ -320,7 +320,7 @@ def required_materials(request):
 @login_required
 def add_item(request):
     if request.user.profile.userRole != 1:
-        return redirect('marketplace')
+        return redirect('home_page')
     classes = Class.objects.all()
     tags = Tag.objects.all()
     return render(request, "add_item.html", {
@@ -363,7 +363,7 @@ def tag_create(request):
 @login_required
 def add_item_submit(request):
     if request.user.profile.userRole != 1:
-        return redirect('marketplace')
+        return redirect('home_page')
     if request.method == 'POST':
         title = request.POST.get('title')
         status = request.POST.get('status')
@@ -387,7 +387,7 @@ def add_item_submit(request):
             item_image = ItemImage(image=img)
             item_image.save()
             new_item.images.add(item_image)
-        return redirect('marketplace')
+        return redirect('librarian_home_page')
     return redirect('add_item')
 
     '''
@@ -635,7 +635,7 @@ def delete_item(request, uuid):
     
     if request.method == 'POST':
         item.delete()
-        return redirect('marketplace')
+        return redirect('librarian_home_page')
     
     return HttpResponseForbidden("Invalid request method.")
 
