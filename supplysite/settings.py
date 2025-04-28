@@ -200,8 +200,6 @@ STORAGES = {
     "default": {
         "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
     },
-
-    # not needed for now
     "staticfiles": {
         "BACKEND": "storages.backends.s3boto3.S3StaticStorage",
     },

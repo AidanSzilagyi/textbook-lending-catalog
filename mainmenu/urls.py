@@ -12,6 +12,8 @@ urlpatterns = [
     path('classes/<slug:slug>/add_required_tag/', views.add_required_tag, name='add_required_tag'),
     path('classes/<slug:slug>/unlink_required_tag/<int:tag_id>/', views.unlink_required_tag, name='unlink_required_tag'),
     path("profile/", views.profile, name='profile'),
+    path("profile/<int:user_id>/", views.profile, name='user_profile'),
+    path("profile/edit/", views.edit_profile, name="edit_profile"),
     path('classes/<slug:slug>/material_create/', views.material_create, name='material_create'),
     path("messaging/", views.messaging, name='messaging'),
     path("lent_items/", views.lent_items, name='lent_items'),
@@ -30,10 +32,13 @@ urlpatterns = [
     path('requested_to_in_circulation/', views.requested_to_in_circulation, name='requested_to_in_circulation'),
     path('item_post/', views.item_post, name='item_post'),
     path('items/<uuid:uuid>/', views.item_detail, name='item_detail'),
+    path('items/<uuid:uuid>/delete/', views.delete_item, name='delete_item'),
+    path('items/<uuid:uuid>/edit/', views.edit_item, name='edit_item'),
+    path('items/<uuid:item_uuid>/review/', views.submit_item_review, name='submit_item_review'),
+    path('users/<int:user_id>/review/', views.submit_user_review, name='submit_user_review'),
     path('collections', views.collection, name = 'collections'),
     path('collection/<int:collection_id>/', views.collection_detail, name='collection_detail'),
-    path("profile/", views.profile, name="profile"),
-    path("profile/edit/", views.edit_profile, name="edit_profile"),
-    path('collection/<int:collection_id>/edit/', views.edit_collection, name='edit_collection')
-
+    path('collection/<int:collection_id>/edit/', views.edit_collection, name='edit_collection'),
+    path('collection/<int:collection_id>/delete/', views.delete_collection, name='delete_collection'),
+    path('reviews/', views.user_reviews, name='user_reviews')
 ]

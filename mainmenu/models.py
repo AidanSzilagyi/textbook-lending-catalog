@@ -140,9 +140,17 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='media/profile_pics/', blank=True, null=True)
     userRole = models.IntegerField(default=0)  # 0 represents patron, 1 represents librarian
-    description = models.TextField(blank=True, null=True)
-    interests = models.TextField(blank=True, null=True)
+    major = models.CharField(max_length=255, blank=True, null=True)
+    CLASS_CHOICES = [
+        ('first_year', 'First Year'),
+        ('second_year', 'Second Year'),
+        ('third_year', 'Third Year'),
+        ('fourth_year', 'Fourth Year'),
+        ('grad_student', 'Grad Student'),
+    ]
+    class_year = models.CharField(max_length=20, choices=CLASS_CHOICES, blank=True, null=True)
     birthday = models.DateField(blank=True, null=True)
+    
     def __str__(self):
         return self.user.username
 
@@ -172,6 +180,36 @@ class Message(models.Model):
 
     def __str__(self):
         return f"From {self.sender} to {self.recipient}: {self.content[:30]}"
+
+class ItemReview(models.Model):
+    rating = models.IntegerField(choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')])
+    review_text = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='reviews')
+    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='item_reviews_given')
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('reviewer', 'item')
+
+    def __str__(self):
+        return f"{self.reviewer.username}'s review of {self.item.title}"
+
+class UserReview(models.Model):
+    rating = models.IntegerField(choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')])
+    review_text = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    reviewed_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews_received')
+    reviewer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user_reviews_given')
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('reviewer', 'reviewed_user')
+
+    def __str__(self):
+        return f"{self.reviewer.username}'s review of {self.reviewed_user.username}"
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

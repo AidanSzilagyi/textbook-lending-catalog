@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if profile_user.profile.avatar %}
+                        <img src="{{ profile_user.profile.avatar.url }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% else %}
+                        <img src="{% static 'mainmenu/images/default-avatar.png' %}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% endif %}
+                    <h3>{{ profile_user.username }}</h3>
+                    <p class="text-muted">{{ profile_user.profile.bio|default:"No bio yet" }}</p>
+                    {% if is_own_profile %}
+                        <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4>About</h4>
+                    <p>{{ profile_user.profile.about|default:"No information provided" }}</p>
+                    
+                    <h4>Contact Information</h4>
+                    <p>Email: {{ profile_user.email }}</p>
+                    {% if profile_user.profile.website %}
+                        <p>Website: <a href="{{ profile_user.profile.website }}" target="_blank">{{ profile_user.profile.website }}</a></p>
+                    {% endif %}
+                    
+                    <h4>Collections</h4>
+                    <div class="list-group">
+                        {% for collection in profile_user.collections.all %}
+                            <a href="{% url 'collection_detail' collection.id %}" class="list-group-item list-group-item-action">
+                                {{ collection.name }}
+                            </a>
+                        {% empty %}
+                            <p>No collections yet.</p>
+                        {% endfor %}
+                    </div>
+
+                    <hr>
+
+                    <h4>User Reviews</h4>
+                    {% if user_reviews.exists %}
+                        <div class="mb-4">
+                            <h5>Average Rating: {{ avg_user_rating }}/5</h5>
+                            <div class="text-warning mb-2">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= avg_user_rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="ms-1">({{ avg_user_rating }}/5)</span>
+                            </div>
+                            {% for review in user_reviews %}
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">
+                                            {{ review.reviewer.username }}
+                                            <div class="text-warning">
+                                                {% for i in "12345"|make_list %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                <span class="ms-1">({{ review.rating }}/5)</span>
+                                            </div>
+                                        </h6>
+                                        <p class="card-text">{{ review.review_text|default:"No review text provided." }}</p>
+                                        <small class="text-muted">{{ review.created_at|date:"F j, Y" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p><em>No reviews yet.</em></p>
+                    {% endif %}
+
+                    <h4>Profile Details</h4>
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item">
+                            <strong>Birthday:</strong>
+                            {% if profile_user.profile.birthday %}
+                                {{ profile_user.profile.birthday|date:'F j, Y' }}
+                            {% else %}
+                                {% if is_own_profile %}
+                                    No birthday provided, <a href="{% url 'edit_profile' %}">add one?</a>
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Major:</strong>
+                            {% if profile_user.profile.major %}
+                                {{ profile_user.profile.major }}
+                            {% else %}
+                                {% if is_own_profile %}
+                                    No major provided, <a href="{% url 'edit_profile' %}">add one?</a>
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Class Year:</strong>
+                            {% if profile_user.profile.class_year %}
+                                {{ profile_user.profile.get_class_year_display }}
+                            {% else %}
+                                {% if is_own_profile %}
+                                    No class year provided, <a href="{% url 'edit_profile' %}">add one?</a>
+                                {% else %}
+                                    Not provided
+                                {% endif %}
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
