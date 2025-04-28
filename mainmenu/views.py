@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Avg
-from .forms import ProfileForm, ItemReviewForm, UserReviewForm
+from .forms import ProfileForm, ItemReviewForm, UserReviewForm, DueDateForm
 
 from .forms import ItemForm, CollectionForm
 from .models import *
@@ -187,12 +187,22 @@ def lent_items(request):
 
 @login_required
 def borrowed_items(request):
-    borrowed_item_list = Item.objects.filter(borrower=request.user, status='in_circulation')
-    available_items = Item.objects.filter(status='available')
-    context = {
-        'borrowed_item_list': borrowed_item_list,
-        'available_items': available_items,
-    }
+    if request.user.profile.userRole == 1:  # If user is a librarian
+        borrowed_item_list = Item.objects.filter(owner=request.user, status='in_circulation')
+        requested_items = Item.objects.filter(owner=request.user, status='requested')
+        available_items = Item.objects.filter(status='available')
+        context = {
+            'borrowed_item_list': borrowed_item_list,
+            'requested_items': requested_items,
+            'available_items': available_items,
+        }
+    else:  # If user is a patron
+        borrowed_item_list = Item.objects.filter(borrower=request.user, status='in_circulation')
+        available_items = Item.objects.filter(status='available')
+        context = {
+            'borrowed_item_list': borrowed_item_list,
+            'available_items': available_items,
+        }
     return render(request, "borrowed_items.html", context)
 
 def available_to_requested(request):
@@ -224,20 +234,29 @@ def requested_to_in_circulation(request):
         return render(request, "borrowed_items.html", {"requested_items": requested_items})
     else:
         if 'yes' in request.POST:
-            selected_item.status = 'in_circulation'
-            selected_item.borrower = selected_item.message_set.filter(item=selected_item).last().sender  # 👈 Patron
-            selected_item.save()
+            form = DueDateForm(request.POST)
+            if form.is_valid():
+                selected_item.status = 'in_circulation'
+                selected_item.borrower = selected_item.message_set.filter(item=selected_item).last().sender  # 👈 Patron
+                selected_item.due_date = form.cleaned_data['due_date']
+                selected_item.save()
 
-            patron = selected_item.borrower
-            patron.borrowed_items.add(selected_item)
+                patron = selected_item.borrower
+                patron.borrowed_items.add(selected_item)
 
-            Message.objects.create(
-                sender=request.user,  # owner
-                recipient=patron,
-                item=selected_item,
-                content=f"Your request to borrow '{selected_item.title}' has been accepted. You now have it in circulation!"
-            )
-            return HttpResponseRedirect(reverse('home_page_router'))
+                Message.objects.create(
+                    sender=request.user,  # owner
+                    recipient=patron,
+                    item=selected_item,
+                    content=f"Your request to borrow '{selected_item.title}' has been accepted. The item is due back on {selected_item.due_date.strftime('%B %d, %Y')}."
+                )
+                return HttpResponseRedirect(reverse('home_page_router'))
+            else:
+                # If form is invalid, show the form with errors
+                return render(request, "set_due_date.html", {
+                    "form": form,
+                    "item": selected_item
+                })
 
         elif 'no' in request.POST:
             selected_item.status = 'available'

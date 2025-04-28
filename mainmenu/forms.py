@@ -1,5 +1,6 @@
 from django import forms
 from .models import Item, Tag, Collection, Profile
+from django.utils import timezone
 
 class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
@@ -81,3 +82,16 @@ class ItemReviewForm(ReviewForm):
 
 class UserReviewForm(ReviewForm):
     pass
+
+class DueDateForm(forms.Form):
+    due_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'min': timezone.now().date().isoformat()}),
+        required=True,
+        help_text="Select when this item is due back"
+    )
+
+    def clean_due_date(self):
+        due_date = self.cleaned_data['due_date']
+        if due_date < timezone.now().date():
+            raise forms.ValidationError("Due date cannot be in the past")
+        return due_date
