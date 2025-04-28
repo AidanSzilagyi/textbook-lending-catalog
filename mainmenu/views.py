@@ -4,8 +4,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q
-from .forms import ProfileForm
+from django.db.models import Q, Avg
+from .forms import ProfileForm, ItemReviewForm
 
 from .forms import ItemForm, CollectionForm
 from .models import *
@@ -17,6 +17,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Notification, Collection, CollectionAccessRequest
 from .serializers import NotificationSerializer
+from django.contrib import messages
 
 # New view: the landing login page
 def login_page(request):
@@ -130,8 +131,35 @@ def librarian_home_page(request):
     })
 
 @login_required
-def profile(request):
-    return render(request, "profile.html")
+def profile(request, user_id=None):
+    if user_id:
+        user = get_object_or_404(User, id=user_id)
+    else:
+        user = request.user
+    
+    # Fetch all reviews for this user
+    user_reviews = UserReview.objects.filter(reviewed_user=user)
+    avg_user_rating = user_reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    if avg_user_rating:
+        avg_user_rating = round(avg_user_rating, 1)
+    
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=user.profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('profile')
+    else:
+        form = ProfileForm(instance=user.profile)
+    
+    context = {
+        'form': form,
+        'profile_user': user,
+        'is_own_profile': user == request.user,
+        'user_reviews': user_reviews,
+        'avg_user_rating': avg_user_rating,
+    }
+    return render(request, 'mainmenu/profile.html', context)
 
 @login_required
 def upload_pfp(request):
@@ -149,17 +177,21 @@ def messaging(request):
 
 @login_required
 def lent_items(request):
-    return render(request, "lent_items.html")
+    lent_items_list = Item.objects.filter(owner=request.user, status='in_circulation')
+    listed_items_list = Item.objects.filter(owner=request.user, status='available')
+    context = {
+        'lent_items_list': lent_items_list,
+        'listed_items_list': listed_items_list,
+    }
+    return render(request, "lent_items.html", context)
 
 @login_required
 def borrowed_items(request):
+    borrowed_item_list = Item.objects.filter(borrower=request.user, status='in_circulation')
     available_items = Item.objects.filter(status='available')
-    requested_items = Item.objects.filter(status='requested')
-    borrowed_item_list = request.user.borrowed_items.all().order_by('-id')
-    context ={
-        'available_items': available_items,
-        'requested_items': requested_items,
+    context = {
         'borrowed_item_list': borrowed_item_list,
+        'available_items': available_items,
     }
     return render(request, "borrowed_items.html", context)
 
@@ -401,8 +433,12 @@ def item_post(request):
 @login_required
 def item_detail(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
+    user_review = None
+    if request.user.is_authenticated:
+        user_review = ItemReview.objects.filter(reviewer=request.user, item=item).first()
     return render(request, 'item_detail.html', {
-        'item': item
+        'item': item,
+        'user_review': user_review
     })
 
 @api_view(['GET'])
@@ -413,21 +449,21 @@ def unread_notifications(request):
     return Response(serializer.data)
 
 def collection(request):
-
     if request.method == "POST":
         form = CollectionForm(request.POST)
         if form.is_valid():
             collection = form.save(commit=False)
-            collection.creator = request.user.profile  # Assign logged-in user as creator
+            # Always set the creator to the current user's profile
+            if not collection.creator_id:
+                collection.creator = request.user.profile
             collection.save()
             form.save_m2m()  # Save ManyToMany relationships
             return redirect('collections')# Redirect to homepage after submission
-
     else:
         form = CollectionForm()
 
     collections = Collection.objects.all()
-    user_collections = Collection.objects.filter(creator = request.user.profile)
+    user_collections = Collection.objects.filter(creator=request.user.profile)
     items = Item.objects.all()
 
     return render(request, 'collection.html', {'form': form, 'collections': collections, 'items' : items, 'user_collections': user_collections})
@@ -443,7 +479,11 @@ def collection_detail(request, collection_id):
 def edit_collection(request, collection_id):
     collection = get_object_or_404(Collection, pk=collection_id)
 
-    if request.user.profile != collection.creator:
+    # Only allow editing if:
+    # 1. User is the creator of the collection, OR
+    # 2. User is a librarian AND has access to the collection
+    if not (request.user.profile == collection.creator or 
+            (request.user.profile.userRole == 1 and request.user.profile in collection.access.all())):
         return HttpResponseForbidden("You do not have permission to edit this collection.")
 
     if request.method == 'POST':
@@ -473,3 +513,142 @@ def edit_profile(request):
     else:
         form = ProfileForm(instance=profile)
     return render(request, 'edit_profile.html', {'form': form})
+
+@login_required
+def submit_item_review(request, item_uuid):
+    item = get_object_or_404(Item, uuid=item_uuid)
+    user_review = ItemReview.objects.filter(reviewer=request.user, item=item).first()
+    
+    if request.method == 'POST':
+        form = ItemReviewForm(request.POST)
+        if form.is_valid():
+            rating = int(form.cleaned_data['rating'])
+            if user_review:
+                # Update existing review
+                user_review.rating = rating
+                user_review.review_text = form.cleaned_data['review_text']
+                user_review.save()
+            else:
+                # Create new review
+                ItemReview.objects.create(
+                    reviewer=request.user,
+                    item=item,
+                    rating=rating,
+                    review_text=form.cleaned_data['review_text']
+                )
+            return redirect('item_detail', uuid=item_uuid)
+    else:
+        # Pre-fill form with existing review data if editing
+        initial_data = {}
+        if user_review:
+            initial_data = {
+                'rating': user_review.rating,
+                'review_text': user_review.review_text
+            }
+        form = ItemReviewForm(initial=initial_data)
+    
+    return render(request, 'submit_review.html', {
+        'form': form,
+        'item': item,
+        'user_review': user_review
+    })
+
+@login_required
+def submit_user_review(request, user_id):
+    reviewed_user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        form = UserReviewForm(request.POST)
+        if form.is_valid():
+            # Check if user has already reviewed this user
+            existing_review = UserReview.objects.filter(reviewer=request.user, reviewed_user=reviewed_user).first()
+            if existing_review:
+                existing_review.rating = form.cleaned_data['rating']
+                existing_review.review_text = form.cleaned_data['review_text']
+                existing_review.save()
+            else:
+                UserReview.objects.create(
+                    reviewer=request.user,
+                    reviewed_user=reviewed_user,
+                    rating=form.cleaned_data['rating'],
+                    review_text=form.cleaned_data['review_text']
+                )
+            return redirect('user_profile', user_id=user_id)
+    else:
+        form = UserReviewForm()
+    
+    return render(request, 'submit_review.html', {
+        'form': form,
+        'reviewed_user': reviewed_user,
+        'review_type': 'user'
+    })
+
+@login_required
+def delete_item(request, uuid):
+    item = get_object_or_404(Item, uuid=uuid)
+    
+    # Check if user is a librarian and the owner of the item
+    if request.user.profile.userRole != 1 or item.owner != request.user:
+        return HttpResponseForbidden("You do not have permission to delete this item.")
+    
+    if request.method == 'POST':
+        item.delete()
+        return redirect('marketplace')
+    
+    return HttpResponseForbidden("Invalid request method.")
+
+@login_required
+def edit_item(request, uuid):
+    item = get_object_or_404(Item, uuid=uuid)
+    
+    # Check if user is a librarian and the owner of the item
+    if request.user.profile.userRole != 1 or item.owner != request.user:
+        return HttpResponseForbidden("You do not have permission to edit this item.")
+    
+    # Check if item is available
+    if item.status != Item.STATUS_AVAILABLE:
+        return HttpResponseForbidden("You can only edit available items.")
+    
+    if request.method == 'POST':
+        form = ItemForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            item = form.save()
+            
+            # Handle image uploads
+            if request.FILES.getlist('images'):
+                # Remove existing images
+                item.images.all().delete()
+                # Add new images
+                for f in request.FILES.getlist('images'):
+                    img = ItemImage.objects.create(image=f)
+                    item.images.add(img)
+            
+            return redirect('item_detail', uuid=uuid)
+    else:
+        form = ItemForm(instance=item)
+    
+    return render(request, 'edit_item.html', {
+        'form': form,
+        'item': item
+    })
+
+@login_required
+def user_reviews(request):
+    # Get all reviews by the current user
+    item_reviews = ItemReview.objects.filter(reviewer=request.user).order_by('-created_at')
+    user_reviews = UserReview.objects.filter(reviewer=request.user).order_by('-created_at')
+    
+    return render(request, 'user_reviews.html', {
+        'item_reviews': item_reviews,
+        'user_reviews': user_reviews
+    })
+
+@login_required
+def delete_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+    if collection.creator != request.user.profile:
+        return HttpResponseForbidden("You do not have permission to delete this collection.")
+    if request.method == "POST":
+        collection.delete()
+        return redirect('collections')
+    return render(request, "confirm_delete_collection.html", {"collection": collection})

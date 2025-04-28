@@ -17,30 +17,41 @@
     <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
   </div>
 
+  <div class="card mb-3">
+    <div class="card-body">
+      <h2 class="h4 mb-4">Currently Borrowed Items</h2>
+      {% if borrowed_item_list %}
+        <ul class="list-group">
+          {% for item in borrowed_item_list %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ item.title }}</strong>
+                <span class="text-muted ms-2">(Owner: {{ item.owner.username }})</span>
+              </div>
+              <span class="badge bg-primary">{{ item.get_status_display }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">You are not currently borrowing any items.</p>
+      {% endif %}
+    </div>
+  </div>
+
   {% if user.profile.userRole == 0 %}
-      <div class = "card mb-3">
-        <div class="card-body">
-            <fieldset>
-                <legend class="h1">List of borrowed_items</legend>
-                {% for item in borrowed_item_list %}
-                    <div class="form-check mb-3">
-                        <label class="form-check-label" for="item{{ forloop.counter }}">{{item}} -- Owner: {{ item.owner }} </label>
-                    </div>
-                {% endfor %}
-            </fieldset>
-        </div>
-      </div>
     <div class="card mb-4">
       <div class="card-body">
         <form action="{% url 'available_to_requested' %}" method="post">
           {% csrf_token %}
           <fieldset>
-            <legend class="h2">Select which textbook do you want to send a request for</legend>
+            <legend class="h2">Select which item you want to send a request for</legend>
             {% for item in available_items %}
               <div class="form-check mb-2">
                 <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                <label class="form-check-label" for="item{{ forloop.counter }}">{{item}} -- Owner: {{ item.owner }}</label>
+                <label class="form-check-label" for="item{{ forloop.counter }}">{{ item.title }} -- Owner: {{ item.owner.username }}</label>
               </div>
+            {% empty %}
+              <p class="text-muted">No available items to request.</p>
             {% endfor %}
           </fieldset>
           <button type="submit" class="btn btn-primary mt-3">Submit</button>
