@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidde
 from django.template.defaultfilters import slugify
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q, Avg
-from .forms import ProfileForm, ItemReviewForm
+from .forms import ProfileForm, ItemReviewForm, UserReviewForm
 
 from .forms import ItemForm, CollectionForm
 from .models import *
@@ -542,7 +542,7 @@ def submit_item_review(request, item_uuid):
         initial_data = {}
         if user_review:
             initial_data = {
-                'rating': user_review.rating,
+                'rating': str(user_review.rating),  # Convert to string for radio button
                 'review_text': user_review.review_text
             }
         form = ItemReviewForm(initial=initial_data)
@@ -550,36 +550,47 @@ def submit_item_review(request, item_uuid):
     return render(request, 'submit_review.html', {
         'form': form,
         'item': item,
-        'user_review': user_review
+        'user_review': user_review,
+        'review_type': 'item'
     })
 
 @login_required
 def submit_user_review(request, user_id):
     reviewed_user = get_object_or_404(User, id=user_id)
+    user_review = UserReview.objects.filter(reviewer=request.user, reviewed_user=reviewed_user).first()
     
     if request.method == 'POST':
         form = UserReviewForm(request.POST)
         if form.is_valid():
-            # Check if user has already reviewed this user
-            existing_review = UserReview.objects.filter(reviewer=request.user, reviewed_user=reviewed_user).first()
-            if existing_review:
-                existing_review.rating = form.cleaned_data['rating']
-                existing_review.review_text = form.cleaned_data['review_text']
-                existing_review.save()
+            rating = int(form.cleaned_data['rating'])
+            if user_review:
+                # Update existing review
+                user_review.rating = rating
+                user_review.review_text = form.cleaned_data['review_text']
+                user_review.save()
             else:
+                # Create new review
                 UserReview.objects.create(
                     reviewer=request.user,
                     reviewed_user=reviewed_user,
-                    rating=form.cleaned_data['rating'],
+                    rating=rating,
                     review_text=form.cleaned_data['review_text']
                 )
             return redirect('user_profile', user_id=user_id)
     else:
-        form = UserReviewForm()
+        # Pre-fill form with existing review data if editing
+        initial_data = {}
+        if user_review:
+            initial_data = {
+                'rating': str(user_review.rating),  # Convert to string for radio button
+                'review_text': user_review.review_text
+            }
+        form = UserReviewForm(initial=initial_data)
     
     return render(request, 'submit_review.html', {
         'form': form,
         'reviewed_user': reviewed_user,
+        'user_review': user_review,
         'review_type': 'user'
     })
 
