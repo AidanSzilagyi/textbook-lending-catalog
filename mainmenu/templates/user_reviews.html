@@ -34,7 +34,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="mt-3">
-                                    <a href="{% url 'submit_item_review' review.item.uuid %}" class="btn btn-sm btn-primary">Edit Review</a>
+                                    <a href="{% url 'submit_item_review' review.item.uuid %}?next={% url 'user_reviews' %}" class="btn btn-sm btn-primary">Edit Review</a>
                                 </div>
                             </div>
                         </div>
@@ -69,7 +69,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="mt-3">
-                                    <a href="{% url 'submit_user_review' review.reviewed_user.id %}" class="btn btn-sm btn-primary">Edit Review</a>
+                                    <a href="{% url 'submit_user_review' review.reviewed_user.id %}?next={% url 'user_reviews' %}" class="btn btn-sm btn-primary">Edit Review</a>
                                 </div>
                             </div>
                         </div>
