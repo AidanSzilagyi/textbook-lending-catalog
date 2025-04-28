@@ -291,8 +291,12 @@ def patron_to_librarian(request):
 
 @login_required
 def required_materials(request):
-    classes = Class.objects.exclude(slug='')
-    return render(request, "required_materials.html", {"classes": classes})
+    q = request.GET.get('q', '')
+    if q:
+        classes = Class.objects.filter(name__icontains=q) | Class.objects.filter(description__icontains=q)
+    else:
+        classes = Class.objects.all()
+    return render(request, 'required_materials.html', {'classes': classes, 'q': q})
 
 @login_required
 def add_item(request):

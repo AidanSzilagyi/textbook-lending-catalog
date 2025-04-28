@@ -1,94 +1,94 @@
 {% extends "base.html" %}
 
+{% block title %}Required Materials{% endblock %}
+
 {% block extra_css %}
 <style>
-  .scroll-container {
-    max-height: 300px;
+  html, body {
+    height: 100%;
+    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+    overflow-x: hidden;
   }
-  /* Hide forms initially */
-  #classForm { 
-    display: none;
-    margin-top: 20px;
+
+  .scroll-container {
+    max-height: 48vh; /* even smaller now */
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin-top: 15px;
+    padding-right: 10px;
+    border: 2px solid #42EAFF;
+    border-radius: 10px;
+  }
+
+  .scroll-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scroll-container::-webkit-scrollbar-thumb {
+    background-color: #4272FF;
+    border-radius: 10px;
+  }
+  .scroll-container::-webkit-scrollbar-track {
+    background: #e0e0e0;
+  }
+
+  .page-header {
+    margin-top: 10px; /* tightened */
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  h2 {
+    color: #222;
+    font-weight: bold;
+    font-size: 2.5rem;
+    margin-bottom: 0;
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 1.1rem;
+  }
+
+  .btn-homepage {
+    margin-top: 10px; /* less */
+    margin-bottom: 10px;
+  }
+
+  .search-bar {
+    margin-top: 10px; /* less gap between title and search */
+    margin-bottom: 10px;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-  <div class="fixed-top bg-light text-center py-3">
-    <h1>Required Materials</h1>
+<div class="container d-flex justify-content-between align-items-center mt-2">
+  <a href="{% url 'home_page' %}" class="btn btn-primary btn-homepage">&larr; Back to Homepage</a>
+  <p class="mb-0">Logged in as {{ user.email }}</p>
+</div>
+
+<div class="page-header">
+  <h2>Required Materials</h2>
+</div>
+
+<div class="row mb-3 search-bar">
+  <div class="col">
+    <form class="d-flex" method="GET" action="{% url 'required_materials' %}">
+      <input class="form-control me-2" type="search" name="q" placeholder="Search classes..." value="{{ q }}">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
   </div>
+</div>
 
-  <div class="container mt-5 pt-5">
-    <div class="row mb-4">
-      <div class="col text-end">
-        <p class="lead">Logged in as {{ user.username }}</p>
-      </div>
-    </div>
-
-  <div class="mt-4">
-    <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
+<div class="scroll-container">
+  <div class="list-group">
+    {% for class_obj in classes %}
+    <a href="{% url 'class_detail' class_obj.slug %}" class="list-group-item list-group-item-action mb-2">
+      <h5 class="fw-bold" style="color: #4272FF;">{{ class_obj.name }}</h5>
+      <p class="mb-0">{{ class_obj.description }}</p>
+    </a>
+    {% empty %}
+    <p>No classes available.</p>
+    {% endfor %}
   </div>
-
-  <div class="mt-4">
-    {% if user.profile.userRole == 1 %}
-      <button id="addClassBtn" class="btn btn-success ms-2">Add Class</button>
-    {% endif %}
-  </div>
-  
-  {% if user.profile.userRole == 1 %}
-    <!-- Hidden form for creating a new Class -->
-    <div id="classForm" class="card p-4">
-      <form method="POST" action="{% url 'class_create' %}">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="className" class="form-label">Class Name</label>
-          <input type="text" name="name" class="form-control" id="className" required>
-        </div>
-        <div class="mb-3">
-          <label for="classDescription" class="form-label">Description</label>
-          <textarea name="description" class="form-control" id="classDescription" rows="3" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-        <button type="button" id="cancelClassBtn" class="btn btn-secondary ms-2">Cancel</button>
-      </form>
-    </div>
-  {% endif %}
-
-  <div class="scroll-container mt-4">
-    <div class="d-flex flex-row overflow-auto">
-      {% for class_obj in classes %}
-        <a href="{% url 'class_detail' class_obj.slug %}" class="text-decoration-none text-reset">
-          <div class="card me-3" style="min-width: 200px;">
-            <div class="card-body">
-              <h5 class="card-title">{{ class_obj.name }}</h5>
-              <p class="card-text">{{ class_obj.description }}</p>
-            </div>
-          </div>
-        </a>
-      {% empty %}
-        <p>No classes available.</p>
-      {% endfor %}
-    </div>
-  </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  document.addEventListener("DOMContentLoaded", function(){
-    const addClassBtn = document.getElementById("addClassBtn");
-    const cancelClassBtn = document.getElementById("cancelClassBtn");
-    const classForm = document.getElementById("classForm");
-
-    if(addClassBtn){
-      addClassBtn.addEventListener("click", function(){
-        classForm.style.display = "block";
-      });
-    }
-    if(cancelClassBtn){
-      cancelClassBtn.addEventListener("click", function(){
-        classForm.style.display = "none";
-      });
-    }
-  });
-</script>
+</div>
 {% endblock %}
