@@ -21,19 +21,43 @@
     <div class="card-body">
       <h2 class="h4 mb-4">Currently Borrowed Items</h2>
       {% if borrowed_item_list %}
-        <ul class="list-group">
+        <div class="row">
           {% for item in borrowed_item_list %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <strong>{{ item.title }}</strong>
-                <span class="text-muted ms-2">(Owner: {{ item.owner.username }})</span>
+            <div class="col-md-6 mb-4">
+              <div class="card">
+                <div class="card-body">
+                  <h5 class="card-title">{{ item.title }}</h5>
+                  <p class="card-text">{{ item.description }}</p>
+                  
+                  <div class="mb-3">
+                    <strong>Due Date:</strong>
+                    <span class="{% if item.is_overdue %}text-danger{% endif %}">
+                      {{ item.due_date|date:"F j, Y" }}
+                      {% if item.is_overdue %}
+                        (Overdue!)
+                      {% else %}
+                        ({{ item.days_until_due }} days remaining)
+                      {% endif %}
+                    </span>
+                  </div>
+                  
+                  <div class="d-flex justify-content-between align-items-center">
+                    <a href="{% url 'item_detail' item.uuid %}" class="btn btn-primary">View Details</a>
+                    {% if item.reviews.all %}
+                      <span class="text-muted">You've already reviewed this item</span>
+                    {% else %}
+                      <a href="{% url 'submit_item_review' item.uuid %}" class="btn btn-outline-primary">Write Review</a>
+                    {% endif %}
+                  </div>
+                </div>
               </div>
-              <span class="badge bg-primary">{{ item.get_status_display }}</span>
-            </li>
+            </div>
           {% endfor %}
-        </ul>
+        </div>
       {% else %}
-        <p class="text-muted">You are not currently borrowing any items.</p>
+        <div class="alert alert-info">
+          You haven't borrowed any items yet.
+        </div>
       {% endif %}
     </div>
   </div>

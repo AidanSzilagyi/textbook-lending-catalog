@@ -9,6 +9,13 @@
       {{ item.get_status_display }}
     </p>
     <p>
+      <strong>Posted by:</strong>
+      <a href="{% url 'user_profile' user_id=item.owner.id %}">{{ item.owner.username }}</a>
+      {% if item.owner.profile.userRole == 1 %}
+        <span class="badge bg-primary">Librarian</span>
+      {% endif %}
+    </p>
+    <p>
       <strong>Location:</strong>
       {{ item.location|default:"(none)" }}
     </p>
