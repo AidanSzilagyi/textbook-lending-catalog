@@ -1,49 +1,114 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ collection.name }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="container mt-5">
+{% extends "base.html" %}
 
-<h2>{{ collection.name }}</h2>
-<p>{{ collection.description }}</p>
+{% block title %}{{ collection.name }}{% endblock %}
 
-{% if user.profile in collection.access.all or collection.visibility == 'public' or collection.creator == user.profile or user.profile.userRole == 1 %}
-    <h3>Items in this Collection:</h3>
-    <ul>
-        {% for item in items %}
-            <li>{{ item.title }}</li> <!-- Adjust field names as needed -->
-        {% endfor %}
-    </ul>
+{% block extra_css %}
+<style>
+  html, body {
+    height: 100%;
+    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+    overflow-x: hidden;
+  }
+  .page-content {
+    padding-top: 80px; /* space for top bar */
+    margin-top: 40px;
+  }
+  .top-bar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    z-index: 1000;
+  }
+  .top-bar .navbar {
+    padding: 0.5rem 1rem;
+  }
+  .scroll-container {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 15px;
+    background: #ffffff;
+    border: 2px solid #42EAFF;
+    border-radius: 10px;
+  }
+  .scroll-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scroll-container::-webkit-scrollbar-thumb {
+    background-color: #4272FF;
+    border-radius: 10px;
+  }
+  .scroll-container::-webkit-scrollbar-track {
+    background: #e0e0e0;
+  }
+  .card-item {
+    margin-bottom: 10px;
+  }
+</style>
+{% endblock %}
 
-    {% if user.profile.userRole == 1 or collection.creator.id == user.profile.id %}
-        <a href="{% url 'edit_collection' collection.id %}" class="btn btn-warning mt-3">Edit Collection</a>
-        {% if collection.creator.id == user.profile.id %}
-          <form method="post" action="{% url 'delete_collection' collection.id %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger mt-3" onclick="return confirm('Are you sure you want to delete this collection?');">Delete Collection</button>
-          </form>
-        {% endif %}
+{% block content %}
+
+<!-- Fixed Top Bar -->
+<div class="top-bar">
+  <nav class="navbar navbar-light">
+    <span class="navbar-brand mb-0 h1">{{ collection.name }}</span>
+  </nav>
+</div>
+
+<div class="container page-content">
+  <div class="mb-4">
+    <h2>{{ collection.name }}</h2>
+    <p>{{ collection.description }}</p>
+  </div>
+
+  {% if user.profile in collection.access.all or collection.visibility == 'public' or collection.creator == user.profile or user.profile.userRole == 1 %}
+    <h3 class="mb-3">Items in this Collection</h3>
+
+    {% if items %}
+    <div class="scroll-container mb-4">
+      {% for item in items %}
+      <div class="card card-item">
+        <div class="card-body">
+          <h5 class="card-title">{{ item.title }}</h5>
+          {% if item.description %}
+          <p class="card-text small text-muted">{{ item.description }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="alert alert-info">
+        No items in this collection yet.
+      </div>
     {% endif %}
 
-{% else %}
-    <h3>Sorry, you have no access.</h3>
-    <!-- Optional: Request access form -->
-    <!--
-    <form method="POST" action="{#% url 'request_access' collection.id %#}">
-        {#% csrf_token %#}
-        <button type="submit" class="btn btn-warning">Request Access</button>
-    </form>
-    -->
-{% endif %}
+    {% if user.profile.userRole == 1 or collection.creator.id == user.profile.id %}
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'edit_collection' collection.id %}" class="btn btn-warning">Edit Collection</a>
+        {% if collection.creator.id == user.profile.id %}
+        <form method="post" action="{% url 'delete_collection' collection.id %}" onsubmit="return confirm('Are you sure you want to delete this collection?');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Delete Collection</button>
+        </form>
+        {% endif %}
+      </div>
+    {% endif %}
 
-<div class="mt-4">
+  {% else %}
+    <div class="alert alert-danger mt-4">
+      <h5>Sorry, you do not have access to view this collection.</h5>
+    </div>
+    <!-- Optional: future "Request Access" button -->
+  {% endif %}
+
+  <!-- Back to Collections -->
+  <div class="mt-5">
     <a href="{% url 'collections' %}" class="btn btn-primary">Back to Collections</a>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

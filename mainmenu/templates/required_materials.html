@@ -1,12 +1,51 @@
 {% extends "base.html" %}
 
+{% block title %}Required Materials{% endblock %}
+
 {% block extra_css %}
 <style>
-  .scroll-container {
-    max-height: 300px;
+  html, body {
+    height: 100%;
+    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+    overflow-x: hidden;
   }
-  /* Hide forms initially */
-  #classForm { 
+  .page-content {
+    padding-top: 80px;
+  }
+  .top-bar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+    z-index: 1000;
+  }
+  .top-bar .navbar {
+    padding: 0.5rem 1rem;
+  }
+  .scroll-container {
+    overflow-x: auto;
+    padding: 15px;
+    background: #ffffff;
+    border: 2px solid #42EAFF;
+    border-radius: 10px;
+    margin-top: 20px;
+  }
+  .scroll-container::-webkit-scrollbar {
+    height: 6px;
+  }
+  .scroll-container::-webkit-scrollbar-thumb {
+    background-color: #4272FF;
+    border-radius: 10px;
+  }
+  .scroll-container::-webkit-scrollbar-track {
+    background: #e0e0e0;
+  }
+  .card-class {
+    min-width: 220px;
+    margin-right: 15px;
+  }
+  #classForm {
     display: none;
     margin-top: 20px;
   }
@@ -14,62 +53,69 @@
 {% endblock %}
 
 {% block content %}
-  <div class="fixed-top bg-light text-center py-3">
-    <h1>Required Materials</h1>
-  </div>
 
-  <div class="container mt-5 pt-5">
-    <div class="row mb-4">
-      <div class="col text-end">
-        <p class="lead">Logged in as {{ user.username }}</p>
-      </div>
+<!-- Top Bar -->
+<div class="top-bar">
+  <nav class="navbar navbar-light">
+    <span class="navbar-brand mb-0 h1">Required Materials</span>
+    <div class="d-flex">
+      <span class="me-3">Logged in as {{ user.username }}</span>
+      <a href="{% url 'home_page' %}" class="btn btn-primary btn-sm">⬅️ Home</a>
     </div>
+  </nav>
+</div>
 
-  <div class="mt-4">
-    <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
-  </div>
+<div class="container page-content">
 
-  <div class="mt-4">
-    {% if user.profile.userRole == 1 %}
-      <button id="addClassBtn" class="btn btn-success ms-2">Add Class</button>
-    {% endif %}
-  </div>
-  
+  <!-- Add Class (Only for Librarians) -->
   {% if user.profile.userRole == 1 %}
-    <!-- Hidden form for creating a new Class -->
-    <div id="classForm" class="card p-4">
-      <form method="POST" action="{% url 'class_create' %}">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="className" class="form-label">Class Name</label>
-          <input type="text" name="name" class="form-control" id="className" required>
-        </div>
-        <div class="mb-3">
-          <label for="classDescription" class="form-label">Description</label>
-          <textarea name="description" class="form-control" id="classDescription" rows="3" required></textarea>
-        </div>
+  <div class="mt-4 text-end">
+    <button id="addClassBtn" class="btn btn-success">➕ Add Class</button>
+  </div>
+
+  <div id="classForm" class="card p-4 mt-3">
+    <form method="POST" action="{% url 'class_create' %}">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="className" class="form-label">Class Name</label>
+        <input type="text" name="name" class="form-control" id="className" required>
+      </div>
+      <div class="mb-3">
+        <label for="classDescription" class="form-label">Description</label>
+        <textarea name="description" class="form-control" id="classDescription" rows="3" required></textarea>
+      </div>
+      <div class="d-flex">
         <button type="submit" class="btn btn-primary">Submit</button>
         <button type="button" id="cancelClassBtn" class="btn btn-secondary ms-2">Cancel</button>
-      </form>
-    </div>
+      </div>
+    </form>
+  </div>
   {% endif %}
 
+  <!-- Class List -->
   <div class="scroll-container mt-4">
-    <div class="d-flex flex-row overflow-auto">
+    {% if classes %}
+    <div class="d-flex flex-row">
       {% for class_obj in classes %}
-        <a href="{% url 'class_detail' class_obj.slug %}" class="text-decoration-none text-reset">
-          <div class="card me-3" style="min-width: 200px;">
+        <a href="{% url 'class_detail' class_obj.slug %}" class="text-decoration-none text-dark">
+          <div class="card card-class">
             <div class="card-body">
               <h5 class="card-title">{{ class_obj.name }}</h5>
-              <p class="card-text">{{ class_obj.description }}</p>
+              <p class="card-text small text-muted">{{ class_obj.description|truncatewords:15 }}</p>
             </div>
           </div>
         </a>
-      {% empty %}
-        <p>No classes available.</p>
       {% endfor %}
     </div>
+    {% else %}
+    <div class="alert alert-info mt-3">
+      📚 No classes available yet.
+    </div>
+    {% endif %}
   </div>
+
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
