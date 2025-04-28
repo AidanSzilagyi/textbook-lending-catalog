@@ -478,6 +478,8 @@ def unread_notifications(request):
     return Response(serializer.data)
 
 def collection(request):
+    q = request.GET.get('q', '')
+
     if request.method == "POST":
         form = CollectionForm(request.POST)
         if form.is_valid():
@@ -492,20 +494,31 @@ def collection(request):
         form = CollectionForm()
 
     collections = Collection.objects.all()
+    public_collections = collections.filter(visibility= Collection.PUBLIC)
     user_collections = Collection.objects.filter(creator=request.user.profile)
+
+    if q:
+        public_collections = public_collections.filter(Q(name__icontains=q))
+        user_collections = user_collections.filter(Q(name__icontains=q))
+        collections = collections.filter(Q(name__icontains=q))
+
     items = Item.objects.all()
 
-    return render(request, 'collection.html', {'form': form, 'collections': collections, 'items' : items, 'user_collections': user_collections})
+    return render(request, 'collection.html', {'form': form, 'collections': collections, 'items' : items, 'user_collections': user_collections, 'public_collections': public_collections})
 
 def collection_detail(request, collection_id):
+    q = request.GET.get('q', '')
     collection = get_object_or_404(Collection, id=collection_id)
     items = collection.items.all()  # if you have a related_name like 'items' in FK
+    if q:
+        items = items.filter(Q(title__icontains=q))
     return render(request, 'collection_detail.html', {
         'collection': collection,
         'items': items,
     })
 
 def edit_collection(request, collection_id):
+
     collection = get_object_or_404(Collection, pk=collection_id)
 
     # Only allow editing if:

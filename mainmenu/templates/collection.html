@@ -1,118 +1,194 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Collections</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="container mt-5">
+{% extends "base.html" %}
 
-<!-- Top Bar -->
-<div class="fixed-top bg-light text-center py-3">
-    <p class="lead">Logged in as {{ user.username }}</p>
-</div>
+{% block title %}Collections{% endblock %}
 
-<!-- Add New Collection Button -->
-<div class="mt-5 pt-5">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCollectionModal">
-        Add New Collection
+{% block extra_css %}
+<style>
+  html, body {
+    height: 100%;
+    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+    overflow-x: hidden;
+  }
+
+  h1, h2 {
+    font-weight: bold;
+  }
+
+  .top-bar {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-homepage {
+    margin-bottom: 10px;
+  }
+
+  .form-control {
+    max-width: 500px;
+    margin: 0 auto 20px auto;
+    display: block;
+  }
+
+  .list-unstyled li {
+    margin-bottom: 10px;
+  }
+
+  .collection-card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 1.1rem;
+  }
+
+  .modal-header {
+    background-color: #4272FF;
+    color: white;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .section-header h2 {
+    margin: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="top-bar">
+    <a href="{% url 'home_page_router' %}" class="btn btn-primary btn-homepage">
+      &larr; Back to Homepage
+    </a>
+    <p class="mb-0">Logged in as {{ user.email }}</p>
+  </div>
+
+  <h1 class="text-center my-4">Collections</h1>
+
+  <form method="get" class="mb-4">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search collections by title" class="form-control" />
+  </form>
+
+  <div class="section-header">
+    <h2>Your Collections</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCollectionModal">
+      Add New Collection
     </button>
+  </div>
+
+  {% if user_collections %}
+    <ul class="list-unstyled">
+      {% for c in user_collections %}
+        <li class="collection-card">
+          <a href="{% url 'collection_detail' c.id %}" class="fw-bold text-primary">{{ c.name }}</a> <br>
+          <small class="text-muted">{{ c.description }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-center">You have no collections.</p>
+  {% endif %}
+
+  <h2 class="mt-5 mb-3">Collections by Others</h2>
+
+  {% if user.profile.userRole == 1 %}
+    {% if collections %}
+      <ul class="list-unstyled">
+        {% for c in collections %}
+          {% if c.creator != user.profile %}
+            <li class="collection-card">
+              <a href="{% url 'collection_detail' c.id %}" class="fw-bold text-primary">{{ c.name }}</a> <br>
+              <small class="text-muted">{{ c.description }}<br>Created by: {{ c.creator.user.username }}</small>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-center">No collections found.</p>
+    {% endif %}
+  {% else %}
+    {% if public_collections %}
+      <ul class="list-unstyled">
+        {% for c in public_collections %}
+          {% if c.creator != user.profile %}
+            <li class="collection-card">
+              <a href="{% url 'collection_detail' c.id %}" class="fw-bold text-primary">{{ c.name }}</a> <br>
+              <small class="text-muted">{{ c.description }}<br>Created by: {{ c.creator.user.username }}</small>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-center">No collections found.</p>
+    {% endif %}
+  {% endif %}
 </div>
 
 <!-- Modal for Adding New Collection -->
 <div class="modal fade" id="addCollectionModal" tabindex="-1" aria-labelledby="addCollectionLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="post" action="{% url 'collections' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="title" class="form-label">Collection Title</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'collections' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="name" class="form-label">Collection Title</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+          </div>
 
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
-                    </div>
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+          </div>
 
-                    <div class="mb-3">
-                        <label for="items" class="form-label">Select Items</label>
-                        <select class="form-select" id="items" name="items" multiple>
-                            {% for item in items %}
-                                <option value="{{ item.id }}">{{ item.title }}</option>
-                            {% endfor %}
-                        </select>
-                        <small class="form-text text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple items.</small>
-                    </div>
+          <div class="mb-3">
+            <label for="items" class="form-label">Select Items</label>
+            <select class="form-select" id="items" name="items" multiple>
+              {% for item in items %}
+                <option value="{{ item.id }}">{{ item.title }}</option>
+              {% endfor %}
+            </select>
+            <small class="form-text text-muted">Hold Ctrl (Windows) or Command (Mac) to select multiple items.</small>
+          </div>
 
-                    <div class="mb-3">
-                        <label for="visibility" class="form-label">Visibility</label>
-                        <select class="form-select" id="visibility" name="visibility">
-                            {% if user.profile.userRole == 0 %}
-                                <option value="public" selected>Public</option>
-                            {% else %}
-                                <option value="public" selected>Public</option>
-                                <option value="private">Private</option>
-                            {% endif %}
-                        </select>
-                    </div>
+          <div class="mb-3">
+            <label for="visibility" class="form-label">Visibility</label>
+            <select class="form-select" id="visibility" name="visibility">
+              {% if user.profile.userRole == 0 %}
+                <option value="public" selected>Public</option>
+              {% else %}
+                <option value="public" selected>Public</option>
+                <option value="private">Private</option>
+              {% endif %}
+            </select>
+          </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success">Save Collection</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-success">Save Collection</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
-
-<!-- Your Collections -->
-<h2 class="mt-4">Your Collections</h2>
-{% if user_collections %}
-    <ul>
-        {% for c in user_collections %}
-            <li><strong><a href="{% url 'collection_detail' c.id %}">{{ c.name }}</a></strong> - {{ c.description }}</li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>You have no collections.</p>
-{% endif %}
-
-<!-- Collections by Others -->
-<h2 class="mt-4">Collections by Others</h2>
-<!-- You can uncomment and fix the search bar if needed -->
-<!--
-<form method="get" class="mb-3">
-    <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search collections by title" class="form-control" />
-</form>
--->
-{% if collections %}
-    <ul>
-        {% for c in collections %}
-            {% if c.creator != user.profile %}
-                <li>
-                    <strong><a href="{% url 'collection_detail' c.id %}">{{ c.name }}</a></strong> - {{ c.description }}
-                    <br>
-                    <small class="text-muted">Created by: {{ c.creator.user.username }}</small>
-                </li>
-            {% endif %}
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No public collections found.</p>
-{% endif %}
-
-<!-- Back to Homepage -->
-<div class="mt-4">
-    <a href="{% url 'home_page_router' %}" class="btn btn-primary">Back to Homepage</a>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}
