@@ -36,15 +36,15 @@
       <!-- Optional Additional Profile Information -->
       <div class="mb-3">
         <h4>Additional Information</h4>
-        {% if user.profile.description %}
-          <p><strong>Description:</strong> {{ user.profile.description }}</p>
+        {% if user.profile.major %}
+          <p><strong>Major:</strong> {{ user.profile.major }}</p>
         {% else %}
-          <p><em>No description provided. <a href="{% url 'edit_profile' %}">Add one?</a></em></p>
+          <p><em>No major provided. <a href="{% url 'edit_profile' %}">Add one?</a></em></p>
         {% endif %}
-        {% if user.profile.interests %}
-          <p><strong>Interests:</strong> {{ user.profile.interests }}</p>
+        {% if user.profile.class_year %}
+          <p><strong>Class Year:</strong> {{ user.profile.get_class_year_display }}</p>
         {% else %}
-          <p><em>No interests provided. <a href="{% url 'edit_profile' %}">Add some?</a></em></p>
+          <p><em>No class year provided. <a href="{% url 'edit_profile' %}">Add one?</a></em></p>
         {% endif %}
         {% if user.profile.birthday %}
           <p><strong>Birthday:</strong> {{ user.profile.birthday|date:"F j, Y" }}</p>

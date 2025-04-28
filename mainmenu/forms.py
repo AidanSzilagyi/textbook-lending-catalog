@@ -36,5 +36,7 @@ class CollectionForm(forms.ModelForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
-        # Ensure these fields exist in your Profile model (add them if needed)
-        fields = ['profile_picture', 'description', 'interests', 'birthday']
+        fields = ['profile_picture', 'major', 'class_year', 'birthday']
+        widgets = {
+            'class_year': forms.Select(choices=Profile.CLASS_CHOICES),
+        }

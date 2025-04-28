@@ -140,9 +140,17 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='media/profile_pics/', blank=True, null=True)
     userRole = models.IntegerField(default=0)  # 0 represents patron, 1 represents librarian
-    description = models.TextField(blank=True, null=True)
-    interests = models.TextField(blank=True, null=True)
+    major = models.CharField(max_length=255, blank=True, null=True)
+    CLASS_CHOICES = [
+        ('first_year', 'First Year'),
+        ('second_year', 'Second Year'),
+        ('third_year', 'Third Year'),
+        ('fourth_year', 'Fourth Year'),
+        ('grad_student', 'Grad Student'),
+    ]
+    class_year = models.CharField(max_length=20, choices=CLASS_CHOICES, blank=True, null=True)
     birthday = models.DateField(blank=True, null=True)
+    
     def __str__(self):
         return self.user.username
 
