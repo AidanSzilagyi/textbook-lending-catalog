@@ -143,6 +143,11 @@ def profile(request, user_id=None):
     if avg_user_rating:
         avg_user_rating = round(avg_user_rating, 1)
     
+    # Get the current user's review if they're viewing someone else's profile
+    user_review = None
+    if request.user.is_authenticated and user != request.user:
+        user_review = UserReview.objects.filter(reviewer=request.user, reviewed_user=user).first()
+    
     if request.method == 'POST':
         form = ProfileForm(request.POST, request.FILES, instance=user.profile)
         if form.is_valid():
@@ -158,6 +163,7 @@ def profile(request, user_id=None):
         'is_own_profile': user == request.user,
         'user_reviews': user_reviews,
         'avg_user_rating': avg_user_rating,
+        'user_review': user_review,
     }
     return render(request, 'mainmenu/profile.html', context)
 
@@ -690,3 +696,32 @@ def delete_collection(request, collection_id):
         collection.delete()
         return redirect('collections')
     return render(request, "confirm_delete_collection.html", {"collection": collection})
+
+@login_required
+def delete_item_review(request, review_id):
+    review = get_object_or_404(ItemReview, id=review_id)
+    if review.reviewer != request.user:
+        return HttpResponseForbidden("You do not have permission to delete this review.")
+    
+    next_url = request.GET.get('next')
+    review.delete()
+    messages.success(request, 'Review deleted successfully.')
+    
+    if next_url:
+        return redirect(next_url)
+    return redirect('item_detail', uuid=review.item.uuid)
+
+@login_required
+def delete_user_review(request, review_id):
+    review = get_object_or_404(UserReview, id=review_id)
+    if review.reviewer != request.user:
+        return HttpResponseForbidden("You do not have permission to delete this review.")
+    
+    next_url = request.GET.get('next')
+    reviewed_user_id = review.reviewed_user.id
+    review.delete()
+    messages.success(request, 'Review deleted successfully.')
+    
+    if next_url:
+        return redirect(next_url)
+    return redirect('user_profile', user_id=reviewed_user_id)
