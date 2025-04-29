@@ -144,7 +144,7 @@ class BorrowedItemsPageTestPatron(TestCase):
         self.base_url = reverse("home_page")
         self.client.force_login(self.user)
         self.gotten_into_url = reverse("borrowed_items")
-        self.go_through = reverse("available_to_requested", args =[self.item.pk])
+        self.go_through = reverse("available_to_requested", args =[self.item.uuid])
     def test_redirect_back_to_home_page(self):
         response = self.client.get(reverse("home_page"))
         self.assertEqual(response.status_code, 200)
@@ -177,7 +177,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         self.base_url = reverse("librarian_home_page")
         self.client.force_login(self.user)
         self.gotten_into_url = reverse("borrowed_items")
-        self.go_through = reverse("requested_to_in_circulation", args=[self.item.pk])
+        self.go_through = reverse("requested_to_in_circulation", args=[self.item.uuid])
         self.message, _ = Message.objects.get_or_create(sender=self.borrower, recipient=self.owner)
 
     def test_redirect_back_to_home_page(self):
@@ -189,7 +189,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         self.assertContains(first_response, "To be borrowed")
         due_date = timezone.localdate() + timezone.timedelta(days=7)
         response = self.client.post(self.base_url, {
-            'item': self.item.pk,
+            'item': self.item.uuid,
             'yes': 'Confirm',
             'due_date': due_date
         })
@@ -211,7 +211,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         self.assertContains(first_response, "To be borrowed")
         due_date = timezone.localdate() + timezone.timedelta(days=7)
         response = self.client.post(self.base_url, {
-            'item': self.item.pk,
+            'item': self.item.uuid,
             'no': 'Deny',
         })
         self.assertRedirects(borrowing,reverse("librarian_home_page"), status_code=302, target_status_code=200)
