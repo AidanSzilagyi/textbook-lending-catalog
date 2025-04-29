@@ -1,5 +1,5 @@
 from django.test import TestCase, Client
-from .models import Profile
+from .models import Profile, Item, Message
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
