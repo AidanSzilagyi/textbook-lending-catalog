@@ -23,9 +23,6 @@
         <br>
         <br>
 
-            <!--<img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" alt="Sign in with Google">-->
-
-
         {% if user.is_authenticated %}
             <p>You are signed in as {{user.email}}</p>
             <a href="{% url 'logout' %}">Logout</a>

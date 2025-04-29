@@ -1,10 +1,27 @@
+"""
+tests.py
+
+Defines automated tests for the textbook lending web application at the University of Virginia.
+Covers unit tests and integration tests to verify user authentication, profile management, 
+item borrowing and lending workflows, message handling, and item detail navigation.
+
+Test Coverage Includes:
+- Librarian and patron access to home pages, profiles, and borrowed/lent item pages.
+- Borrowing requests from patrons and approval/denial by librarians.
+- Correct state transitions for item status (e.g., available, requested, in circulation).
+- Notification and messaging generation upon borrowing decisions.
+- Navigation and display of item detail pages.
+
+These tests ensure the reliability, correctness, and access control of critical lending operations 
+within the platform.
+"""
+
+from datetime import timezone
 from django.test import TestCase, Client
 from .models import Profile, Item, Message
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-
 from .views import borrowed_items, home_page_router
-
 
 class LibProfileViewTests(TestCase):
     def setUp(self):
@@ -217,14 +234,11 @@ class ItemDetailNavigationTests(TestCase):
         self.client = Client()
         User = get_user_model()
 
-        # Create a user and profile
         self.user = User.objects.create_user(username='patron', password='testpass', email='patron@example.com')
         Profile.objects.create(user=self.user, userRole=0)
 
-        # Log in user
         self.client.login(username='patron', password='testpass')
 
-        # Create two items
         self.item1 = Item.objects.create(
             title='Physics Textbook',
             status='available',

@@ -1,3 +1,23 @@
+"""
+views.py
+
+Defines the main view functions for the textbook lending web application at the University of Virginia.
+Handles user interactions, page rendering, form submissions, access control, and API endpoints.
+
+Key Functionalities:
+- User authentication and session management (login, logout, home page routing).
+- Item lifecycle operations: listing, borrowing, lending, editing, and deleting textbooks.
+- Profile management: view, edit, upload profile pictures, and display user reviews.
+- Messaging system: sending and receiving messages tied to item transactions and collection access.
+- Collection management: create, edit, view, delete collections and handle access requests.
+- Class and tag management: create, view, and organize required textbook materials.
+- Review system: submit and manage item and user reviews.
+- Notification API: retrieve unread notifications for authenticated users.
+
+These views power all major features of the platform, enabling seamless textbook lending and borrowing 
+across patrons and librarians.
+"""
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages.storage import default_storage
 from django.shortcuts import render, redirect, get_object_or_404
@@ -19,7 +39,6 @@ from .models import Notification, Collection, CollectionAccessRequest
 from .serializers import NotificationSerializer
 from django.contrib import messages
 
-# New view: the landing login page
 def login_page(request):
     return render(request, "login.html")
 
@@ -30,7 +49,6 @@ def index(request):
         return render(request, "mainmenu/index.html", {"info": "This text only appears locally"})
     return render(request, "mainmenu/index.html", {"info": info.important_text})    
 
-# Update logout_view: after logout, redirect to the new login page
 def logout_view(request):
     logout(request)
     return redirect("login_page")
@@ -99,7 +117,6 @@ def home_page(request):
 @login_required
 def librarian_home_page(request):
     print("In librarian_home_page, rendering librarian_home_page.html")
-    # Handle POST for item submission
     if request.method == 'POST':
         form = ItemForm(request.POST)
         if form.is_valid():
@@ -111,10 +128,8 @@ def librarian_home_page(request):
     else:
         form = ItemForm()
 
-    # Retrieve the query string from the GET parameters (if any)
     q = request.GET.get('q', '')
     if q:
-        # Filter items by matching title, description, location or associated tag names
         items = Item.objects.filter(
             Q(title__icontains=q) |
             Q(description__icontains=q) |
@@ -137,7 +152,6 @@ def profile(request, user_id=None):
     else:
         user = request.user
     
-    # Fetch all reviews for this user
     user_reviews = UserReview.objects.filter(reviewed_user=user)
     avg_user_rating = user_reviews.aggregate(Avg('rating'))['rating__avg'] or 0
     if avg_user_rating:
@@ -187,7 +201,7 @@ def lent_items(request):
 
 @login_required
 def borrowed_items(request):
-    if request.user.profile.userRole == 1:  # If user is a librarian
+    if request.user.profile.userRole == 1:
         borrowed_item_list = Item.objects.filter(owner=request.user, status='in_circulation')
         requested_items = Item.objects.filter(owner=request.user, status='requested')
         available_items = Item.objects.filter(status='available')
@@ -196,7 +210,7 @@ def borrowed_items(request):
             'requested_items': requested_items,
             'available_items': available_items,
         }
-    else:  # If user is a patron
+    else:  
         borrowed_item_list = Item.objects.filter(borrower=request.user, status='in_circulation')
         available_items = Item.objects.filter(status='available')
         context = {
@@ -245,14 +259,13 @@ def requested_to_in_circulation(request):
                 patron.borrowed_items.add(selected_item)
 
                 Message.objects.create(
-                    sender=request.user,  # owner
+                    sender=request.user, 
                     recipient=patron,
                     item=selected_item,
                     content=f"Your request to borrow '{selected_item.title}' has been accepted. The item is due back on {selected_item.due_date.strftime('%B %d, %Y')}."
                 )
                 return HttpResponseRedirect(reverse('home_page_router'))
             else:
-                # If form is invalid, show the form with errors
                 return render(request, "set_due_date.html", {
                     "form": form,
                     "item": selected_item
@@ -265,18 +278,13 @@ def requested_to_in_circulation(request):
             patron_message = selected_item.message_set.filter(item=selected_item).last()
             if patron_message:
                 Message.objects.create(
-                    sender=request.user,  # owner
+                    sender=request.user,  
                     recipient=patron_message.sender,
                     item=selected_item,
                     content=f"Your request to borrow '{selected_item.title}' has been denied. The item is now available again."
                 )
 
             return HttpResponseRedirect(reverse('home_page_router'))
-
-# @login_required
-# def marketplace(request):
-#     items = Item.objects.all()
-#     return render(request, "marketplace.html", {"items": items})
 
 @login_required
 def librarian_settings(request):
@@ -338,8 +346,8 @@ def class_create(request):
         if not name or not description:
             return redirect('home_page')
         base_slug = slugify(name)
-        if not base_slug:  # If slugify returns empty string
-            base_slug = "class"  # Provide a default base
+        if not base_slug:  
+            base_slug = "class"  
         slug = base_slug
         counter = 1
         while Class.objects.filter(slug=slug).exists():
@@ -483,7 +491,6 @@ def collection(request):
             collection.save()
             form.save_m2m()
             return redirect('collections')
-        # No need for manual error_message setting anymore!
 
     else:
         form = CollectionForm()
@@ -512,7 +519,7 @@ def collection(request):
 def collection_detail(request, collection_id):
     q = request.GET.get('q', '')
     collection = get_object_or_404(Collection, id=collection_id)
-    items = collection.items.all()  # if you have a related_name like 'items' in FK
+    items = collection.items.all()  
     if q:
         items = items.filter(Q(title__icontains=q))
     return render(request, 'collection_detail.html', {
@@ -536,7 +543,7 @@ def edit_collection(request, collection_id):
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection)
-        form.fields['items'].queryset = allowed_items  # important: limit choices!
+        form.fields['items'].queryset = allowed_items  
 
         if form.is_valid():
             updated_collection = form.save(commit=False)
@@ -549,7 +556,7 @@ def edit_collection(request, collection_id):
             return redirect('collection_detail', collection_id)
     else:
         form = CollectionForm(instance=collection)
-        form.fields['items'].queryset = allowed_items  # important: limit choices!
+        form.fields['items'].queryset = allowed_items 
 
     return render(request, 'edit_collection.html', {
         'form': form,
@@ -561,20 +568,15 @@ def edit_collection(request, collection_id):
 def request_access(request, collection_id):
     collection = get_object_or_404(Collection, pk=collection_id)
 
-    # Create or get the access request
     CollectionAccessRequest.objects.get_or_create(user=request.user, collection=collection)
-
-    # Send a message to the collection creator
     Message.objects.create(
         sender=request.user,
-        recipient=collection.creator.user,  # the actual User instance
+        recipient=collection.creator.user, 
         content=f"{request.user.username} has requested access to your collection: '{collection.name}'."
     )
 
-    # Send a message to all librarians too
     librarians = Profile.objects.filter(userRole=1)
     for librarian in librarians:
-        # Skip if the librarian is the same as the collection creator (already messaged)
         if librarian != collection.creator.user:
             Message.objects.create(
                 sender=request.user,
@@ -607,12 +609,10 @@ def submit_item_review(request, item_uuid):
         if form.is_valid():
             rating = int(form.cleaned_data['rating'])
             if user_review:
-                # Update existing review
                 user_review.rating = rating
                 user_review.review_text = form.cleaned_data['review_text']
                 user_review.save()
             else:
-                # Create new review
                 ItemReview.objects.create(
                     reviewer=request.user,
                     item=item,
@@ -623,11 +623,10 @@ def submit_item_review(request, item_uuid):
                 return redirect(next_url)
             return redirect('item_detail', uuid=item_uuid)
     else:
-        # Pre-fill form with existing review data if editing
         initial_data = {}
         if user_review:
             initial_data = {
-                'rating': str(user_review.rating),  # Convert to string for radio button
+                'rating': str(user_review.rating), 
                 'review_text': user_review.review_text
             }
         form = ItemReviewForm(initial=initial_data)
@@ -651,12 +650,10 @@ def submit_user_review(request, user_id):
         if form.is_valid():
             rating = int(form.cleaned_data['rating'])
             if user_review:
-                # Update existing review
                 user_review.rating = rating
                 user_review.review_text = form.cleaned_data['review_text']
                 user_review.save()
             else:
-                # Create new review
                 UserReview.objects.create(
                     reviewer=request.user,
                     reviewed_user=reviewed_user,
@@ -667,11 +664,10 @@ def submit_user_review(request, user_id):
                 return redirect(next_url)
             return redirect('user_profile', user_id=user_id)
     else:
-        # Pre-fill form with existing review data if editing
         initial_data = {}
         if user_review:
             initial_data = {
-                'rating': str(user_review.rating),  # Convert to string for radio button
+                'rating': str(user_review.rating),  
                 'review_text': user_review.review_text
             }
         form = UserReviewForm(initial=initial_data)
@@ -688,7 +684,6 @@ def submit_user_review(request, user_id):
 def delete_item(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
     
-    # Check if user is a librarian and the owner of the item
     if request.user.profile.userRole != 1 or item.owner != request.user:
         return HttpResponseForbidden("You do not have permission to delete this item.")
     
@@ -702,11 +697,9 @@ def delete_item(request, uuid):
 def edit_item(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
     
-    # Check if user is a librarian and the owner of the item
     if request.user.profile.userRole != 1 or item.owner != request.user:
         return HttpResponseForbidden("You do not have permission to edit this item.")
     
-    # Check if item is available
     if item.status != Item.STATUS_AVAILABLE:
         return HttpResponseForbidden("You can only edit available items.")
     
@@ -715,11 +708,8 @@ def edit_item(request, uuid):
         if form.is_valid():
             item = form.save()
             
-            # Handle image uploads
             if request.FILES.getlist('images'):
-                # Remove existing images
                 item.images.all().delete()
-                # Add new images
                 for f in request.FILES.getlist('images'):
                     img = ItemImage.objects.create(image=f)
                     item.images.add(img)
@@ -735,7 +725,6 @@ def edit_item(request, uuid):
 
 @login_required
 def user_reviews(request):
-    # Get all reviews by the current user
     item_reviews = ItemReview.objects.filter(reviewer=request.user).order_by('-created_at')
     user_reviews = UserReview.objects.filter(reviewer=request.user).order_by('-created_at')
     
