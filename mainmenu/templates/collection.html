@@ -82,9 +82,6 @@
   {% endif %}
 
   <div class="top-bar">
-    <a href="{% url 'home_page_router' %}" class="btn btn-primary btn-homepage">
-      &larr; Back to Homepage
-    </a>
     {% if user.is_authenticated %}
       <p class="mb-0">Logged in as {{ user.email }}</p>
     {% endif %}
@@ -143,7 +140,7 @@
         <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="post" action="{% url 'collections' %}">
+      <form style="padding: 10px 10px 10px 10px;" method="post" action="{% url 'collections' %}">
         {% csrf_token %}
         <div class="mb-3">
           <label for="name" class="form-label">Collection Title</label>
