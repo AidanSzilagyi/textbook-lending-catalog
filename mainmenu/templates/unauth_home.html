@@ -74,7 +74,7 @@
 {% block navbar %}
 <nav class="navbar navbar-expand-lg navbar-light bg-light px-4 py-2 shadow-sm">
   <a class="navbar-brand d-flex align-items-center" href="{% url 'unauth_home_page' %}">
-    <img src="{% static 'mainmenu/images/logo.png' %}" alt="Logo" style="height: 40px;" class="me-2">
+    <img src="{% static 'mainmenu/images/textbook_logo.png' %}" alt="Logo" style="height: 75px;" class="me-2">
     <span class="fw-bold">Textbook Lending @ UVA</span>
   </a>
   <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -91,11 +91,8 @@
         <a class="nav-link" href="{% url 'collections' %}">Collections</a>
       </li>
       <li class="nav-item">
-        <form action="{% provider_login_url 'google' %}" method="post" class="d-inline">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-outline-dark btn-sm ms-2">Log In</button>
-        </form>
-      </li>
+        <a href="{% provider_login_url 'google' %}" class="nav-link">Log In</a>
+      </li>               
     </ul>
   </div>
 </nav>
