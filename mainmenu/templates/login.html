@@ -83,12 +83,12 @@ html, body {
 }
 </style>
 {% endblock %}
-
+{% load static %}
 {% block content %}
 <div class="login-container">
     <!-- Logo Section -->
     <div>
-        <img src="/static/mainmenu/images/textbook_logo.png" alt="Logo" class="login-logo">
+        <img src="{% static 'mainmenu/images/textbook_logo.png' %}" alt="Logo" class="login-logo">
     </div>
 
     <!-- Title Section -->

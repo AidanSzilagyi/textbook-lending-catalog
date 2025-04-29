@@ -165,8 +165,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # STATICFILES_DIRS = [BASE_DIR / "static"]  # for local
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles" # for Heroku
-STATIC_URL = "/static/"
-
 
 # Authentication
 AUTHENTICATION_BACKENDS = {
