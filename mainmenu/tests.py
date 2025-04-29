@@ -239,14 +239,14 @@ class ItemDetailNavigationTests(TestCase):
 
         self.client.login(username='patron', password='testpass')
 
-        self.item1 = Item.objects.create(
+        self.item1,_ = Item.objects.get_or_create(
             title='Physics Textbook',
             status='available',
             location='Shelf A',
             description='Covers basic physics concepts.',
             owner=self.user
         )
-        self.item2 = Item.objects.create(
+        self.item2,_ = Item.objects.get_or_create(
             title='Chemistry Textbook',
             status='available',
             location='Shelf B',
