@@ -1,3 +1,27 @@
+"""
+models.py
+
+Defines all database models for the textbook lending web application at the University of Virginia.
+These models represent the core objects and relationships needed to manage textbook items, 
+user profiles, lending operations, collections, messaging, notifications, and user feedback.
+
+Key Models:
+- Item: Represents a textbook or other lendable item with status tracking, tagging, ownership, and due dates.
+- Profile: Extends Django's User model with additional fields like role, major, and graduation year.
+- Collection: Groups multiple items together with public/private visibility settings and access control.
+- Tag and Class: Enable categorization of items and collections by subject matter.
+- Message and Notification: Handle user-to-user communication and reminders about borrowed items.
+- ItemReview and UserReview: Allow users to leave structured feedback on items and other users.
+- CollectionAccessRequest: Supports requesting access to private collections.
+
+Additional Features:
+- Custom UUID generation for item identification.
+- Automatic profile creation via Django signals upon user registration.
+- Validation to enforce business rules, such as preventing private item conflicts.
+
+These models serve as the foundation for the lending, borrowing, and review system across the platform.
+"""
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
@@ -25,7 +49,6 @@ class Class(models.Model):
     def __str__(self):
         return self.name
 
-
 class Collection(models.Model):
 
     PUBLIC = 'public'
@@ -50,14 +73,11 @@ class Collection(models.Model):
 
     def save(self, *args, **kwargs):
         """Ensure only librarians can create private collections."""
-        if self.creator.userRole == 0:  # If creator is a patron
-            self.visibility = self.PUBLIC  # Force visibility to Public
+        if self.creator.userRole == 0:  
+            self.visibility = self.PUBLIC 
         super().save(*args, **kwargs)
-        # If the collection is private, check the items
         if self.visibility == self.PRIVATE:
-            # Check if any of the items in this collection are already in another private collection
             for item in self.items.all():
-                # Query to find other collections with the same item and private visibility
                 if Collection.objects.filter(items=item, visibility=self.PRIVATE).exclude(id=self.id).exists():
                     raise ValidationError(f"Item '{item.uuid}' is already in another private collection.")
 
@@ -76,7 +96,6 @@ class ItemImage(models.Model):
 
     def __str__(self):
         return self.caption or f"Image {self.id}"
-
 
 class Item(models.Model):
     STATUS_AVAILABLE = 'available'
@@ -131,7 +150,6 @@ class Item(models.Model):
         tag_list = ", ".join(tag.name for tag in self.tags.all())
         return f"{self.title} [{status_display}] – Tags: {tag_list or 'None'}"
 
-
 class TestObject(models.Model):
     important_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField("date published")
@@ -168,7 +186,6 @@ class Notification(models.Model):
 
     class Meta:
         unique_together = ('user','item','kind')
-
 
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')

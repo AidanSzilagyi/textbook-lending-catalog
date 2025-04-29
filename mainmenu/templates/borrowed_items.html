@@ -69,7 +69,6 @@
 </div>
 
 <div class="container mt-2">
-
   <div class="card mb-4">
     <div class="card-body">
       <h2 class="h4 mb-4">Currently Borrowed Items</h2>
@@ -115,54 +114,26 @@
     </div>
   </div>
 
-  {% if user.profile.userRole == 0 %}
-    <div class="card mb-4">
-      <div class="card-body">
-        <form action="{% url 'available_to_requested' %}" method="post">
-          {% csrf_token %}
-          <fieldset>
-            <legend class="h2">Select an Item to Request</legend>
-            {% for item in available_items %}
-              <div class="form-check mb-2">
-                <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                <label class="form-check-label" for="item{{ forloop.counter }}">
-                  {{ item.title }} -- Owner: {{ item.owner.username }}
-                </label>
-              </div>
-            {% empty %}
-              <p class="text-muted">No available items to request.</p>
-            {% endfor %}
-          </fieldset>
-          <button type="submit" class="btn btn-primary mt-3">Submit</button>
-        </form>
-      </div>
+  <div class="card mb-4">
+    <div class="card-body">
+      <form action="{% url 'available_to_requested' %}" method="post">
+        {% csrf_token %}
+        <fieldset>
+          <legend class="h2">Select an Item to Request</legend>
+          {% for item in available_items %}
+            <div class="form-check mb-2">
+              <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
+              <label class="form-check-label" for="item{{ forloop.counter }}">
+                {{ item.title }} -- Owner: {{ item.owner.username }}
+              </label>
+            </div>
+          {% empty %}
+            <p class="text-muted">No available items to request.</p>
+          {% endfor %}
+        </fieldset>
+        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+      </form>
     </div>
-  {% endif %}
-
-  {% if user.profile.userRole == 1 %}
-    <div class="card mb-4">
-      <div class="card-body">
-        <form action="{% url 'requested_to_in_circulation' %}" method="post">
-          {% csrf_token %}
-          <fieldset>
-            <legend class="h2">Review Requests</legend>
-            {% for item in requested_items %}
-              <div class="form-check mb-2">
-                <input type="radio" class="form-check-input" name="item" id="item{{ forloop.counter }}" value="{{ item.id }}">
-                <label class="form-check-label" for="item{{ forloop.counter }}">
-                  {{ item }} -- {{ item.message_set.last.sender.username }}
-                </label>
-              </div>
-            {% empty %}
-              <p class="text-muted">No requests pending.</p>
-            {% endfor %}
-          </fieldset>
-          <button type="submit" name="yes" class="btn btn-success mt-3">Accept</button>
-          <button type="submit" name="no" class="btn btn-danger mt-3">Deny</button>
-        </form>
-      </div>
-    </div>
-  {% endif %}
-
+  </div>
 </div>
 {% endblock %}

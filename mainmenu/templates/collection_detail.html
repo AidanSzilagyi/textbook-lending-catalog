@@ -11,6 +11,10 @@
     overflow-x: hidden;
   }
 
+  h1, h2, h3 {
+    font-weight: bold;
+  }
+
   .top-bar {
     margin-top: 20px;
     display: flex;
@@ -20,11 +24,13 @@
   }
 
   .btn-homepage {
+    margin-top: 20px;
     margin-bottom: 10px;
   }
 
   .collection-header {
     text-align: center;
+    margin-bottom: 20px;
   }
 
   .collection-info {
@@ -69,7 +75,6 @@
 
 {% block content %}
 <div class="container">
-
   <div class="top-bar">
     <a href="{% url 'collections' %}" class="btn btn-primary btn-homepage">
       &larr; Back to Collections
@@ -83,9 +88,9 @@
 
   <div class="collection-info">
     <p>{{ collection.description }}</p>
-    <p><strong>People with access:</strong> {{ collection.creator }}
-      {% if collection.access %}
-        {% for c in collection.access.all %}, {{ c.name }}{% endfor %}
+    <p><strong>People with access:</strong> {{ collection.creator.user.username }}
+      {% if collection.access.all %}
+        {% for profile in collection.access.all %}, {{ profile.user.username }}{% endfor %}
       {% endif %}
     </p>
   </div>
@@ -100,9 +105,11 @@
     {% if items %}
       <div class="scroll-container">
         <ul>
-          {% for item in items %}
-            <li class="collection-item">{{ item.title }}</li>
-          {% endfor %}
+         {% for item in items %}
+             <li class="collection-item">
+                <a href="{% url 'item_detail' item.uuid %}" class="text-decoration-none">{{ item.title }}</a>
+             </li>
+         {% endfor %}
         </ul>
       </div>
     {% else %}
@@ -112,17 +119,20 @@
     {% if user.profile.userRole == 1 or collection.creator.id == user.profile.id %}
     <div class="btn-container">
       <a href="{% url 'edit_collection' collection.id %}" class="btn btn-warning">Edit Collection</a>
-      {% if collection.creator.id == user.profile.id %}
         <form method="post" action="{% url 'delete_collection' collection.id %}" onsubmit="return confirm('Are you sure you want to delete this collection?');">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger">Delete Collection</button>
         </form>
       {% endif %}
     </div>
-    {% endif %}
   {% else %}
     <h3 class="text-center text-danger mt-4">Sorry, you do not have access to view this collection.</h3>
+    <div class="text-center mt-3">
+      <form method="post" action="{% url 'request_access' collection.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-info">Request Access</button>
+      </form>
+    </div>
   {% endif %}
-
 </div>
 {% endblock %}
