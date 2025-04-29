@@ -13,33 +13,54 @@ Please use a virtual environment. After cloning, run:
 Note that you automatically connect to the live database, even when running locally.
 The main branch has Amazon S3 configured, which cannot be accessed locally. Profile Pictures and Item Pictures will not appear locally.
 
+![Screenshot 2025-04-29 at 6 40 30 PM](https://github.com/user-attachments/assets/13ca1270-d17f-495d-96eb-2529102f4150)
+
 # Member Contributions
 1. Zaid Contractor
 - Role: Scrum Master
-- Compiled sprint reports and presented our progress to the TA
-- Led team meetings, communication, efforts, testing schemes, and development progress
-- Shared key personal insights about the entire development progress in the Scrum Master Report
-- Developer contributions: login page, anonymous users page, integration of marketplace and home page, major UI improvements across the app, debugging various features
+- Compiled sprint reports and presented our progress to the TA.
+- Led team meetings, communication, efforts, testing schemes, and development progress.
+- Shared key personal insights about the entire development progress in the Scrum Master Report.
+- Developer contributions: login page, anonymous users page, integration of marketplace and home page, major UI improvements across the app, debugging various features.
 2. Rory Kretzer
-- Role: Requirements Manager
-- Led requirements elicitation process and compiled a comprehensive report
-- Initial setup of the app's homepage, and navbar
-- All functionality pertaining to reviews and ratings for both users and items + My Reviews page
-- Models for Items, tags, and classes
-- Required materials page (new UI was not me)
-- Librarian requests page
-- Requesting access to collections
-- Marking items as returned
-- Various Debugging Tasks
-4. Surya Vemulapalli
-- Role: Testing Manager
-- 
-5. Aidan Szilagyi
+- Role: Requirements Manager.
+- Led requirements elicitation process and compiled a comprehensive report.
+- Initial setup of the app's homepage, and navbar.
+- All functionality pertaining to reviews and ratings for both users and items + My Reviews page.
+- Models for Items, tags, and classes.
+- Required materials page.
+- Librarian requests page.
+- Requesting access to collections.
+- Marking items as returned.
+- Various debugging Tasks.
+3. Surya Vemulapalli
+- Role: Testing Manager.
+- Wrote most of the testing pipeline for GitHub Actions.
+- Created the beta testing script for beta testers to follow and created a report of the findings from the beta test and what we would do about reported errors or other issues like the UI.
+- Created a separate page for librarians.
+- Created the function for librarians to set other patrons into librarians.
+- Created the borrowing functionality for both patrons and librarians, having different list show up for different roles.
+4. Aidan Szilagyi
 - Role: DevOps Manager
-- 
+- Set up the Django Project and connected Postgres Database.
+- Set up hosting on Heroku.
+- Added Whitenoise static file serving.
+- Integrated Google OAuth for Login.
+- Implemented integration with Amazon S3.
+- Added profile pictures for users and pictures for items.
+- Setup Github CI Pipeline to automatically run tests and redeploy on Heroku.
+- All Debugging related to above tasks.
+- Added minor security features (GP-H).
 6. Dev Patel
 - Role: Software Architect
--   
+- Created Profile Model which helps decide if the User is a librarian or patron.
+- Created the Collection Model, a page to view all collections, and a page to see more collection details.
+- Made it so the owner and librarian can edit and delete the collections.
+- Private Items can not be displayed when making a new collection.
+- Can't make a private collection if that item is in another collection.
+- Patrons can request access to private collections.
+- Led the Requirements change for collections and created a comprehensive report.
+- Various Debugging Tasks.
 
 # Licenses for Major Libraries/Frameworks
 | Library / Framework         | License        | URL                            |
