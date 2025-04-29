@@ -234,10 +234,10 @@ class ItemDetailNavigationTests(TestCase):
         self.client = Client()
         User = get_user_model()
 
-        self.user = User.objects.create_user(username='patron', password='testpass', email='patron@example.com')
-        Profile.objects.create(user=self.user, userRole=0)
+        self.user = User.objects.create_user(username='patronico', password='testpassiere', email='patron@example.com')
+        self.profile,_ = Profile.objects.get_or_create(user=self.user, userRole=0)
 
-        self.client.login(username='patron', password='testpass')
+        self.client.login(username='patronico', password='testpassiere')
 
         self.item1,_ = Item.objects.get_or_create(
             title='Physics Textbook',
