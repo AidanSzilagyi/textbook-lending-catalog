@@ -22,7 +22,15 @@ The main branch has Amazon S3 configured, which cannot be accessed locally. Prof
 - Developer contributions: login page, anonymous users page, integration of marketplace and home page, major UI improvements across the app, debugging various features
 2. Rory Kretzer
 - Role: Requirements Manager
-- 
+- Led requirements elicitation process and compiled a comprehensive report
+- Initial setup of the app's homepage, and navbar
+- All functionality pertaining to reviews and ratings for both users and items + My Reviews page
+- Models for Items, tags, and classes
+- Required materials page (new UI was not me)
+- Librarian requests page
+- Requesting access to collections
+- Marking items as returned
+- Various Debugging Tasks
 4. Surya Vemulapalli
 - Role: Testing Manager
 - 
