@@ -149,6 +149,7 @@ def profile(request, user_id=None):
             form.save()
             messages.success(request, 'Profile updated successfully!')
             return redirect('profile')
+
     else:
         form = ProfileForm(instance=user.profile)
     
@@ -446,6 +447,8 @@ def item_post(request):
             for f in request.FILES.getlist('images'):
                 img = ItemImage.objects.create(image=f)
                 item.images.add(img)
+            item.owner = request.user
+            item.save()
             return redirect('librarian_home_page')
     else:
         form = ItemForm()
