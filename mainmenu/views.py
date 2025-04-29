@@ -349,7 +349,6 @@ def patron_to_librarian(request):
         selected_patron.save()
         return HttpResponseRedirect(reverse("home_page_router"))
 
-@login_required
 def required_materials(request):
     q = request.GET.get('q', '')
     if q:
@@ -515,41 +514,33 @@ def unread_notifications(request):
     return Response(serializer.data)
 
 def collection(request):
-    q = request.GET.get('q', '')
-
-    if request.method == "POST":
-        form = CollectionForm(request.POST)
-        if form.is_valid():
-            collection = form.save(commit=False)
-            if not collection.creator_id:
-                collection.creator = request.user.profile
-            collection.save()
-            form.save_m2m()
-            return redirect('collections')
-
-    else:
-        form = CollectionForm()
-
+    q = request.GET.get("q", "")
+    user_collections = []
     collections = Collection.objects.all()
-    public_collections = collections.filter(visibility=Collection.PUBLIC)
-    user_collections = Collection.objects.filter(creator=request.user.profile)
+
+    # Only filter for user-owned collections if logged in
+    if request.user.is_authenticated:
+        user_collections = Collection.objects.filter(creator=request.user.profile)
 
     if q:
-        public_collections = public_collections.filter(Q(name__icontains=q))
-        user_collections = user_collections.filter(Q(name__icontains=q))
-        collections = collections.filter(Q(name__icontains=q))
+        collections = collections.filter(name__icontains=q)
 
-    private_item_ids = Item.objects.filter(collections_of__visibility='private').values_list('id', flat=True).distinct()
-    items = Item.objects.exclude(id__in=private_item_ids).distinct()
+    # For anonymous users: exclude private collections entirely
+    if not request.user.is_authenticated:
+        collections = collections.filter(visibility='public')
 
-    return render(request, 'collection.html', {
-        'form': form,
-        'collections': collections,
-        'items': items,
-        'user_collections': user_collections,
-        'public_collections': public_collections,
+    # Otherwise, logged-in users see all collections (filtered above)
+    
+    items = Item.objects.all()  # for the modal form to create new collection
+
+    form = CollectionForm()  # adjust if you're using a form
+    return render(request, "collection.html", {
+        "collections": collections,
+        "user_collections": user_collections,
+        "items": items,
+        "form": form,
+        "q": q,
     })
-
 
 def collection_detail(request, collection_id):
     q = request.GET.get('q', '')
