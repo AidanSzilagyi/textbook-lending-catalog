@@ -36,7 +36,16 @@ The main branch has Amazon S3 configured, which cannot be accessed locally. Prof
 - 
 5. Aidan Szilagyi
 - Role: DevOps Manager
-- 
+- Set up the Django Project and connected Postgres Database
+- Set up hosting on Heroku
+- Added Whitenoise static file serving
+- Integrated Google OAuth for Login
+- Implemented integration with Amazon S3
+- Added profile pictures for users and pictures for items
+- Setup Github CI Pipeline to automatically run tests and redeploy on Heroku
+- All Debugging related to above tasks
+- Added minor security features (GP-H)
+
 6. Dev Patel
 - Role: Software Architect
 -   

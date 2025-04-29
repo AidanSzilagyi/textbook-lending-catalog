@@ -53,6 +53,6 @@ admin.site.register(Profile, ProfileAdmin)
 class TagAdmin(admin.ModelAdmin):
     pass
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('title', 'primary_identifier', 'status', 'owner') 
+    list_display = ('title', 'uuid', 'status', 'owner') 
 
 admin.site.register(Item, ItemAdmin)
