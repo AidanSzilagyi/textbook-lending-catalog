@@ -340,14 +340,21 @@ def class_detail(request, slug):
 
 def patron_to_librarian(request):
     patron_list = Profile.objects.filter(userRole=0)
-    try:
-        selected_patron = patron_list.get(pk=request.POST["patron"])
-    except (KeyError, Profile.DoesNotExist):
-        return render(request, "librarian_settings.html", {"patron_list": patron_list})
-    else:
-        selected_patron.userRole = 1
-        selected_patron.save()
+    if request.method == 'POST':
+        selected_ids = request.POST.getlist("patrons")
+        if not selected_ids:
+            return render(request, "librarian_settings.html", {"patron_list": patron_list})
+        
+        for patron_id in selected_ids:
+            try:
+                patron = Profile.objects.get(pk=patron_id)
+                patron.userRole = 1
+                patron.save()
+            except Profile.DoesNotExist:
+                continue
+
         return HttpResponseRedirect(reverse("home_page_router"))
+    return render(request, "librarian_settings.html", {"patron_list": patron_list})
 
 def required_materials(request):
     q = request.GET.get('q', '')
