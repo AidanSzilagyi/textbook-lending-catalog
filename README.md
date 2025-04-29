@@ -31,10 +31,14 @@ The main branch has Amazon S3 configured, which cannot be accessed locally. Prof
 - Requesting access to collections
 - Marking items as returned
 - Various Debugging Tasks
-4. Surya Vemulapalli
+3. Surya Vemulapalli
 - Role: Testing Manager
-- 
-5. Aidan Szilagyi
+- Wrote most of the testing pipeline for GitHub Actions.
+- Created the beta testing script for beta testers to follow and created a report of the findings from the beta test and what we would do about reported errors or other issues like the UI.
+- Created a separate page for Librarians
+- Created the function for librarians to set other patrons into librarians
+- Created the borrowing functionality for both patrons and librarians, having different list show up for different roles.
+4. Aidan Szilagyi
 - Role: DevOps Manager
 - Set up the Django Project and connected Postgres Database
 - Set up hosting on Heroku
