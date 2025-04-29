@@ -33,9 +33,9 @@
 <body>
     {% block navbar %}
     {% if user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center" href="{% url 'home_page_router' %}">
+        <a class="navbar-brand" href="{% url 'home_page_router' %}">
             <img src="{% static 'mainmenu/images/textbook_logo.png' %}" alt="Logo" style="max-height: 80px; margin-right: 15px;">
             <span class="fw-bold" style="font-size: 1.5rem; color: #4272FF;">Textbook Lending @ UVA</span>
         </a>  
@@ -46,7 +46,11 @@
         <ul class="navbar-nav ms-auto">
             <li class="nav-item"><a class="nav-link" href="{% url 'home_page_router' %}">Home</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'messaging' %}">Messaging</a></li>
+            {% if user.profile.userRole == 1 %}
+            <li class="nav-item"><a class="nav-link" href="{% url 'librarian_requests' %}">Requests</a></li>
+            {% else %}
             <li class="nav-item"><a class="nav-link" href="{% url 'borrowed_items' %}">Borrowed Items</a></li>
+            {% endif %}
             {% if user.profile.userRole == 1 %}
             <li class="nav-item"><a class="nav-link" href="{% url 'lent_items' %}">Lent Items</a></li>
             {% endif %}

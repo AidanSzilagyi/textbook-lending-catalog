@@ -43,6 +43,7 @@ urlpatterns = [
     path("upload_pfp/", views.upload_pfp, name="upload_pfp"),
     path("librarian_settings/", views.librarian_settings, name='librarian_settings'),
     path("patron_to_librarian/", views.patron_to_librarian, name='patron_to_librarian'),
+    path("librarian_requests/", views.librarian_requests, name='librarian_requests'),
     path('add-item/', views.add_item, name='add_item'),
     path('add-item-submit/', views.add_item_submit, name='add_item_submit'),
     path('tag_create/', views.tag_create, name='tag_create'),
@@ -61,5 +62,6 @@ urlpatterns = [
     path('collection/<int:collection_id>/edit/', views.edit_collection, name='edit_collection'),
     path('collection/<int:collection_id>/delete/', views.delete_collection, name='delete_collection'),
     path('reviews/', views.user_reviews, name='user_reviews'),
-    path('collection/<int:collection_id>/request-access/', views.request_access, name='request_access')
+    path('collection/<int:collection_id>/request-access/', views.request_access, name='request_access'),
+    path('process_collection_access_request/', views.process_collection_access_request, name='process_collection_access_request'),
 ]
