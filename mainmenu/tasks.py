@@ -1,3 +1,11 @@
+"""
+tasks.py
+
+Defines background tasks for the textbook lending web application at the University of Virginia.
+Includes a scheduled task to automatically generate due date reminder notifications 
+(one week, one day, and one hour before an item's due time) for borrowers.
+"""
+
 from celery import shared_task
 from django.utils import timezone
 from .models import Item, Notification

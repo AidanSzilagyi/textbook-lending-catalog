@@ -1,3 +1,20 @@
+"""
+forms.py
+
+This file defines all Django forms used in the textbook lending web application at the University of Virginia.
+It includes form classes for managing items, collections, user profiles, user reviews, item reviews, 
+and due dates, along with custom validation logic.
+
+Features:
+- Supports multiple file uploads for item images.
+- Implements custom widget styling to improve form appearance and usability.
+- Adds validation to ensure correct collection visibility rules and prevent past due dates.
+- Extends base review forms for both items and users to ensure consistent feedback collection.
+
+These forms power the user-facing functionality for lending, borrowing, reviewing, 
+and managing textbook listings across the platform.
+"""
+
 from django import forms
 from .models import Item, Tag, Collection, Profile
 from django.utils import timezone
@@ -58,6 +75,35 @@ class CollectionForm(forms.ModelForm):
                 'items': forms.SelectMultiple(attrs={'class': 'form-select'}),
                 'visibility': forms.Select(attrs={'class': 'form-select'}),
             }
+
+        def clean(self):
+                cleaned_data = super().clean()
+                selected_items = cleaned_data.get('items')
+                visibility = cleaned_data.get('visibility')
+
+                if visibility == 'private' and selected_items:
+                    for item in selected_items:
+                        public_collections = item.collections_of.filter(visibility='public')
+                        if public_collections.exists():
+                            raise forms.ValidationError(
+                                f"Item '{item.title}' is already in a public collection. "
+                                f"Remove it from public collections before adding to a private one."
+                            )
+                return cleaned_data
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            private_items = Item.objects.filter(collections_of__visibility='private').distinct()
+
+            instance = kwargs.get('instance')
+            if instance:
+                allowed_ids = instance.items.values_list('id', flat=True)
+                self.fields['items'].queryset = Item.objects.exclude(id__in=private_items).union(
+                    Item.objects.filter(id__in=allowed_ids))
+            else:
+                self.fields['items'].queryset = Item.objects.exclude(id__in=private_items)
+
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile

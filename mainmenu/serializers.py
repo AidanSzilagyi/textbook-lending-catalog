@@ -1,3 +1,11 @@
+"""
+serializers.py
+
+Defines serializers for the textbook lending web application at the University of Virginia.
+Includes the NotificationSerializer to convert Notification model instances into JSON format 
+for API responses, including related item details like title and due date.
+"""
+
 from rest_framework import serializers
 from .models import Notification
 

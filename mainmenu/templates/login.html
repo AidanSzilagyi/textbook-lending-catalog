@@ -20,7 +20,7 @@ body {
     text-align: center;
 }
 .login-logo {
-    max-width: 140px; /* proportional to the title */
+    max-width: 140px; 
     margin-bottom: 20px;
 }
 .login-container h2 {
@@ -78,24 +78,21 @@ body {
 }
 html, body {
     height: 100%;
-    overflow-x: hidden; /* Prevent side scrolling */
-    overflow-y: hidden; /* Prevent vertical scrolling for login */
+    overflow-x: hidden; 
+    overflow-y: hidden; 
 }
 </style>
 {% endblock %}
-
+{% load static %}
 {% block content %}
 <div class="login-container">
-    <!-- Logo Section -->
     <div>
-        <img src="/static/mainmenu/images/textbook_logo.png" alt="Logo" class="login-logo">
+        <img src="{% static 'mainmenu/images/textbook_logo.png' %}" alt="Logo" class="login-logo">
     </div>
 
-    <!-- Title Section -->
     <h2>Welcome to Textbook Lending @ UVA</h2>
     <p>Please choose an option to continue:</p>
 
-    <!-- Buttons Section -->
     <div class="login-buttons">
         <a class="anonymous" href="{% url 'unauth_home_page' %}">Browse as Anonymous User</a>
 

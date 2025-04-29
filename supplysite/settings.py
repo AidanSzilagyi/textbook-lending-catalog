@@ -10,9 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-
 from pathlib import Path
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-flmnm$d)xp8sd$=oy_p_yyx_nsrfl%ok8gla&tj7+k7l*9&f*4'
@@ -31,7 +29,6 @@ ALLOWED_HOSTS = [
 SITE_ID = 2
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -91,7 +88,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'supplysite.wsgi.application'
 
-
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": {
@@ -141,7 +137,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -153,20 +148,15 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
 # Static File Serving (Whitenoise):
 # STATICFILES_DIRS = [BASE_DIR / "static"]  # for local
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles" # for Heroku
-STATIC_URL = "/static/"
-
 
 # Authentication
 AUTHENTICATION_BACKENDS = {
@@ -207,7 +197,6 @@ STORAGES = {
 
 
 # Security
-
 import sys
 TEST = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
