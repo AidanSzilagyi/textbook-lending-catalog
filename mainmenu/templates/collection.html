@@ -89,10 +89,6 @@
 
   <h1 class="text-center my-4">Collections</h1>
 
-  <form method="get" class="mb-4">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search collections by title" class="form-control" />
-  </form>
-
   {% if user.is_authenticated %}
     <div class="section-header">
       <h2>Your Collections</h2>
@@ -111,9 +107,14 @@
         {% endfor %}
       </ul>
     {% else %}
-      <p class="text-center">You have no collections.</p>
+      <p class="text-center">No collections.</p>
     {% endif %}
+  {%}
   {% endif %}
+
+  <form method="get" class="mb-4">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search collections by title" class="form-control" />
+  </form>
 
   <h2 class="mt-5 mb-3">Collections by Others</h2>
   {% if collections %}
@@ -140,7 +141,7 @@
         <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="post" action="{% url 'collections' %}">
+      <form style="padding: 10px 10px 10px 10px;" method="post" action="{% url 'collections' %}">
         {% csrf_token %}
         <div class="mb-3">
           <label for="name" class="form-label">Collection Title</label>

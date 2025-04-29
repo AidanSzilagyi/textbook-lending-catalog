@@ -537,13 +537,13 @@ def collection(request):
         form = CollectionForm()
     # Only filter for user-owned collections if logged in
     if request.user.is_authenticated:
-        user_collections = Collection.objects.filter(creator=request.user.profile)
+        user_collections = Collection.objects.filter(creator=request.user.profile).filter()
 
     collections = Collection.objects.all()
 
     if q:
         if request.user.is_authenticated:
-            user_collections = Collection.objects.filter(creator=request.user.profile)
+            user_collections = Collection.objects.filter(creator=request.user.profile).filter(Q(name__icontains=q))
         collections = collections.filter(Q(name__icontains=q))
 
     # For anonymous users: exclude private collections entirely
