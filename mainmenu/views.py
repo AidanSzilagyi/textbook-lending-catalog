@@ -516,24 +516,38 @@ def unread_notifications(request):
 def collection(request):
     q = request.GET.get("q", "")
     user_collections = []
-    collections = Collection.objects.all()
 
+    if request.method == "POST":
+        form = CollectionForm(request.POST)
+        if form.is_valid():
+            collection = form.save(commit=False)
+            if not collection.creator_id:
+                collection.creator = request.user.profile
+            collection.save()
+            form.save_m2m()
+            return redirect('collections')
+    else:
+        form = CollectionForm()
     # Only filter for user-owned collections if logged in
     if request.user.is_authenticated:
         user_collections = Collection.objects.filter(creator=request.user.profile)
 
+    collections = Collection.objects.all()
+
     if q:
-        collections = collections.filter(name__icontains=q)
+        if request.user.is_authenticated:
+            user_collections = Collection.objects.filter(creator=request.user.profile)
+        collections = collections.filter(Q(name__icontains=q))
 
     # For anonymous users: exclude private collections entirely
     if not request.user.is_authenticated:
         collections = collections.filter(visibility='public')
 
     # Otherwise, logged-in users see all collections (filtered above)
-    
-    items = Item.objects.all()  # for the modal form to create new collection
 
-    form = CollectionForm()  # adjust if you're using a form
+    private_item_ids = Item.objects.filter(collections_of__visibility='private').values_list('id', flat=True).distinct()
+    items = Item.objects.exclude(id__in=private_item_ids).distinct()
+
     return render(request, "collection.html", {
         "collections": collections,
         "user_collections": user_collections,
@@ -762,7 +776,7 @@ def user_reviews(request):
 @login_required
 def delete_collection(request, collection_id):
     collection = get_object_or_404(Collection, id=collection_id)
-    if collection.creator != request.user.profile or request.user.profile.userRole != 1:
+    if collection.creator != request.user.profile and request.user.profile.userRole != 1:
         return HttpResponseForbidden("You do not have permission to delete this collection.")
     if request.method == "POST":
         collection.delete()
