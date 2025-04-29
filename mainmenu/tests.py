@@ -121,9 +121,9 @@ class BorrowedItemsPageTestPatron(TestCase):
         self.user.set_password('pwd')
         self.user.save()
         self.profile, _ = Profile.objects.get_or_create(user=self.user, defaults={'userRole': 0})
-        self.owner = User.objects.get_or_create(username='user_alpha')
-        self.borrower = User.objects.get_or_create(username='user_gamma')
-        self.item = Item.objects.get_or_create(name='To be borrowed',status = Item.STATUS_AVAILABLE, location = 'Clark Hall', description = 'The item is for testing purposes only', owner = self.owner)
+        self.owner, _ = User.objects.get_or_create(username='user_alpha')
+        self.borrower, _ = User.objects.get_or_create(username='user_gamma')
+        self.item, _ = Item.objects.get_or_create(name='To be borrowed',status = Item.STATUS_AVAILABLE, location = 'Clark Hall', description = 'The item is for testing purposes only', owner = self.owner)
         self.base_url = reverse("home_page")
         self.client.force_login(self.user)
         self.gotten_into_url = reverse("borrowed_items")
@@ -152,16 +152,16 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         self.user.set_password('pwd')
         self.user.save()
         self.profile, _ = Profile.objects.get_or_create(user=self.user, defaults={'userRole': 1})
-        self.owner = User.objects.get_or_create(username='user_theta')
-        self.borrower = User.objects.get_or_create(username='user_chi')
-        self.item = Item.objects.get_or_create(name='To be reviewed', status=Item.STATUS_REQUESTED,location='Clark Hall',description='The item is for testing purposes only',
+        self.owner, _ = User.objects.get_or_create(username='user_theta')
+        self.borrower, _ = User.objects.get_or_create(username='user_chi')
+        self.item, _ = Item.objects.get_or_create(name='To be reviewed', status=Item.STATUS_REQUESTED,location='Clark Hall',description='The item is for testing purposes only',
                                                        owner=self.owner,
                                                     borrower=self.borrower)
         self.base_url = reverse("librarian_home_page")
         self.client.force_login(self.user)
         self.gotten_into_url = reverse("borrowed_items")
         self.go_through = reverse("requested_to_in_circulation", args=[self.item.pk])
-        self.message = Message.objects.get_or_create(sender=self.borrower, recipient=self.owner)
+        self.message, _ = Message.objects.get_or_create(sender=self.borrower, recipient=self.owner)
 
     def test_redirect_back_to_home_page(self):
         response = self.client.get(reverse("home_page_router"))
@@ -171,12 +171,12 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         first_response = self.client.get(self.gotten_into_url)
         self.assertContains(first_response, "To be borrowed")
         due_date = timezone.localdate() + timezone.timedelta(days=7)
-        response = self.client.post(self.url, {
+        response = self.client.post(self.base_url, {
             'item': self.item.pk,
             'yes': 'Confirm',
             'due_date': due_date
         })
-        self.assertRedirects(borrowing,'/accounts/login/?next=/librarian_home_page/', status_code=302, target_status_code=200)
+        self.assertRedirects(borrowing,reverse('librarian_home_page'), status_code=302, target_status_code=200)
         self.item.refresh_from_db()
         self.assertEqual(self.item.status,Item.STATUS_IN_CIRCULATION)
         self.assertEqual(self.item.location, 'Clark Hall')
@@ -185,7 +185,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         aftermath = self.client.post(self.gotten_into_url)
         self.assertNotContains(aftermath, "To be borrowed")
 
-        messages = Message.objects.filter(item=self.item, recipient=self.patron)
+        messages = Message.objects.filter(item=self.item, recipient=self.borrower)
         self.assertTrue(messages.exists())
         self.assertRedirects(response, reverse('home_page_router'))
 
@@ -193,11 +193,11 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         first_response = self.client.get(self.gotten_into_url)
         self.assertContains(first_response, "To be borrowed")
         due_date = timezone.localdate() + timezone.timedelta(days=7)
-        response = self.client.post(self.url, {
+        response = self.client.post(self.base_url, {
             'item': self.item.pk,
             'no': 'Deny',
         })
-        self.assertRedirects(borrowing,'/accounts/login/?next=/librarian_home_page/', status_code=302, target_status_code=200)
+        self.assertRedirects(borrowing,reverse("librarian_home_page"), status_code=302, target_status_code=200)
         self.item.refresh_from_db()
         self.assertEqual(self.item.status,Item.STATUS_AVAILABLE)
         self.assertEqual(self.item.location, 'Clark Hall')
@@ -206,7 +206,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         aftermath = self.client.post(self.gotten_into_url)
         self.assertNotContains(aftermath, "To be borrowed")
 
-        messages = Message.objects.filter(item=self.item, recipient=self.patron)
+        messages = Message.objects.filter(item=self.item, recipient=self.borrower)
         self.assertTrue(messages.exists())
         self.assertIn("denied", messages.last().content.lower())
 
