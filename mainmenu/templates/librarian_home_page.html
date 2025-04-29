@@ -1,16 +1,104 @@
 {% extends "base.html" %}
+{% load review_tags %}
+{% load static %}
 
-{% block title %}Dashboard{% endblock title %}
+{% block title %}Librarian Home{% endblock %}
 
 {% block extra_css %}
 <style>
-    #itemForm, #tagForm { display: none; margin-top: 20px; }
-    .scroll-container { max-height: 300px; overflow-y: auto; margin-top: 20px; }
+  html, body {
+    height: 100%;
+    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+    overflow-x: hidden;
+  }
+
+  .page-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .scroll-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 20px;
+    border: 2px solid #42EAFF;
+    border-radius: 10px;
+    margin-top: 20px;
+  }
+
+  .scroll-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scroll-container::-webkit-scrollbar-thumb {
+    background-color: #4272FF;
+    border-radius: 10px;
+  }
+  .scroll-container::-webkit-scrollbar-track {
+    background: #e0e0e0;
+  }
+
+  h2 {
+    color: #4272FF;
+    font-weight: bold;
+  }
+
+  .badge {
+    background-color: #FF7E42;
+    color: white;
+    font-size: 0.75rem;
+  }
+
+  .card-title {
+    font-weight: bold;
+  }
+
+  .card {
+    transition: transform 0.2s;
+  }
+  .card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+
+  .navbar-nav .nav-link {
+    color: #444;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .navbar-nav .nav-link:hover {
+    color: #FF7E42;
+    text-decoration: underline;
+  }
+
+  .btn-primary {
+    background-color: #42EAFF;
+    border-color: #42EAFF;
+    color: black;
+    font-weight: bold;
+  }
+  .btn-primary:hover {
+    background-color: #4272FF;
+    border-color: #4272FF;
+    color: white;
+  }
+
+  .rating-stars {
+    color: gold;
+  }
+
+  .default-image {
+    height: 180px;
+    object-fit: cover;
+  }
 </style>
-{% endblock extra_css %}
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="page-content">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Librarian Home Page</h2>
     <p class="mb-0">Logged in as {{ user.email }}</p>
@@ -18,49 +106,32 @@
 
   <div class="row mb-3">
     <div class="col text-start">
-      <button id="postItemBtn" class="btn btn-primary">Post Material</button>
+      <button id="postItemBtn" class="btn btn-primary">Add New Item</button>
       <button id="addTagBtn" class="btn btn-info ms-2">Add Tag</button>
+      <!-- <a href="{% url 'add_item' %}" class="btn btn-success ms-2">Add New Item</a> -->
     </div>
   </div>
-  
+
   <div class="row mb-4">
     <div class="col">
       <form class="d-flex" method="GET" action="{% url 'librarian_home_page' %}">
         <input class="form-control me-2" type="search" name="q" placeholder="Search" value="{{ q }}">
-        <button class="btn btn-outline-success" type="submit">Search</button>
+        <button class="btn btn-primary" type="submit">Search</button>
       </form>
     </div>
   </div>
 
-  <div id="itemForm" class="card p-4">
+  <div id="itemForm" class="card p-4" style="display: none;">
     <form method="POST" action="{% url 'item_post' %}" enctype="multipart/form-data">
       {% csrf_token %}
       {{ form.non_field_errors }}
 
+      <div class="mb-3">{{ form.title.label_tag }} {{ form.title }} {{ form.title.errors }}</div>
+      <div class="mb-3">{{ form.status.label_tag }} {{ form.status }} {{ form.status.errors }}</div>
+      <div class="mb-3">{{ form.location.label_tag }} {{ form.location }} {{ form.location.errors }}</div>
+      <div class="mb-3">{{ form.description.label_tag }} {{ form.description }} {{ form.description.errors }}</div>
       <div class="mb-3">
-        {{ form.title.label_tag }}
-        {{ form.title }}
-        {{ form.title.errors }}
-      </div>
-      <div class="mb-3">
-        {{ form.status.label_tag }}
-        {{ form.status }}
-        {{ form.status.errors }}
-      </div>
-      <div class="mb-3">
-        {{ form.location.label_tag }}
-        {{ form.location }}
-        {{ form.location.errors }}
-      </div>
-      <div class="mb-3">
-        {{ form.description.label_tag }}
-        {{ form.description }}
-        {{ form.description.errors }}
-      </div>
-      <div class="mb-3">
-        {{ form.tags.label_tag }}
-        {{ form.tags }}
-        {{ form.tags.errors }}
+        {{ form.tags.label_tag }} {{ form.tags }} {{ form.tags.errors }}
         <small class="form-text text-muted">Hold Ctrl (Windows) or ⌘ (Mac) to select multiple.</small>
       </div>
       <div class="mb-3">
@@ -73,7 +144,7 @@
     </form>
   </div>
 
-  <div id="tagForm" class="card p-4 mt-3">
+  <div id="tagForm" class="card p-4 mt-3" style="display: none;">
     <form method="POST" action="{% url 'tag_create' %}">
       {% csrf_token %}
       <div class="mb-3">
@@ -86,38 +157,62 @@
   </div>
 
   <div class="scroll-container">
-    <div class="list-group">
+    <div class="row">
       {% for item in items %}
-      <a href="{% url 'item_detail' item.uuid %}" class="list-group-item list-group-item-action">
-        <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{ item.title }}</h5>
-          <small>{{ item.get_status_display }}</small>
-        </div>
-        <p class="mb-1">
-          {% for tag in item.tags.all %}
-            <span class="badge bg-secondary">{{ tag.name }}</span>
-          {% endfor %}
-        </p>
-      </a>
+      <div class="col-md-4 mb-4">
+        <a href="{% url 'item_detail' item.uuid %}" class="text-decoration-none text-reset">
+          <div class="card h-100">
+            {% if USE_AWS and item.images.first %}
+              <img src="{{ item.images.first.image.url }}" class="card-img-top default-image" alt="{{ item.title }}">
+            {% else %}
+              <img src="{% static 'mainmenu/images/default_textbook.png' %}" class="card-img-top default-image" alt="Default textbook image">
+            {% endif %}
+
+            <div class="card-body">
+              <h5 class="card-title">{{ item.title }}</h5>
+              <p class="mb-1">
+                {% for tag in item.tags.all %}
+                  <span class="badge">{{ tag.name }}</span>
+                {% endfor %}
+              </p>
+              <p class="mb-1"><small>Status: <span class="badge bg-{{ item.status|yesno:'success,secondary' }}">{{ item.get_status_display }}</span></small></p>
+              <p class="mb-1">
+                {% if item.reviews.exists %}
+                  <span class="rating-stars">
+                    {% for i in "12345"|make_list %}
+                      {% if forloop.counter <= item.reviews.all|avg_rating %}
+                        <i class="fas fa-star"></i>
+                      {% else %}
+                        <i class="far fa-star"></i>
+                      {% endif %}
+                    {% endfor %}
+                  </span>
+                  <small>({{ item.reviews.all|avg_rating|floatformat:1 }}/5)</small>
+                {% else %}
+                  <small class="text-muted">No ratings yet</small>
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </a>
+      </div>
       {% empty %}
-      <p>No materials posted yet.</p>
+      <div class="col-12">
+        <div class="alert alert-info">No materials posted yet.</div>
+      </div>
       {% endfor %}
     </div>
   </div>
 </div>
-{% endblock content %}
+{% endblock %}
 
 {% block extra_js %}
 <script>
-    document.addEventListener("DOMContentLoaded", function(){
-      document.getElementById("postItemBtn")
-        .addEventListener("click", () => document.getElementById("itemForm").style.display = "block");
-      document.getElementById("cancelItemBtn")
-        .addEventListener("click", () => document.getElementById("itemForm").style.display = "none");
-      document.getElementById("addTagBtn")
-        .addEventListener("click", () => document.getElementById("tagForm").style.display = "block");
-      document.getElementById("cancelTagBtn")
-        .addEventListener("click", () => document.getElementById("tagForm").style.display = "none");
-    });
+  document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("postItemBtn")?.addEventListener("click", () => document.getElementById("itemForm").style.display = "block");
+    document.getElementById("cancelItemBtn")?.addEventListener("click", () => document.getElementById("itemForm").style.display = "none");
+    document.getElementById("addTagBtn")?.addEventListener("click", () => document.getElementById("tagForm").style.display = "block");
+    document.getElementById("cancelTagBtn")?.addEventListener("click", () => document.getElementById("tagForm").style.display = "none");
+  });
 </script>
-{% endblock extra_js %}
+{% endblock %}
