@@ -69,9 +69,20 @@
 </style>
 {% endblock %}
 
+
+
+
 {% block content %}
 <div class="container">
-
+    {% if form.non_field_errors %}
+  <div class="alert alert-danger text-center mt-4">
+    <ul class="mb-0">
+      {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
   <div class="top-bar">
     <a href="{% url 'home_page_router' %}" class="btn btn-primary btn-homepage">
       &larr; Back to Homepage
@@ -106,8 +117,6 @@
   {% endif %}
 
   <h2 class="mt-5 mb-3">Collections by Others</h2>
-
-  {% if user.profile.userRole == 1 %}
     {% if collections %}
       <ul class="list-unstyled">
         {% for c in collections %}
@@ -122,22 +131,6 @@
     {% else %}
       <p class="text-center">No collections found.</p>
     {% endif %}
-  {% else %}
-    {% if public_collections %}
-      <ul class="list-unstyled">
-        {% for c in public_collections %}
-          {% if c.creator != user.profile %}
-            <li class="collection-card">
-              <a href="{% url 'collection_detail' c.id %}" class="fw-bold text-primary">{{ c.name }}</a> <br>
-              <small class="text-muted">{{ c.description }}<br>Created by: {{ c.creator.user.username }}</small>
-            </li>
-          {% endif %}
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="text-center">No collections found.</p>
-    {% endif %}
-  {% endif %}
 </div>
 
 <!-- Modal for Adding New Collection -->
@@ -148,17 +141,16 @@
         <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
         <form method="post" action="{% url 'collections' %}">
           {% csrf_token %}
           <div class="mb-3">
             <label for="name" class="form-label">Collection Title</label>
-            <input type="text" class="form-control" id="name" name="name" required>
+            <input type="text" class="form-control" id="name" name="name" value="{{ form.name.value|default:'' }}" required>
           </div>
 
           <div class="mb-3">
             <label for="description" class="form-label">Description</label>
-            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+            <textarea class="form-control" id="description" name="description" rows="3">{{ form.description.value|default:'' }}</textarea>
           </div>
 
           <div class="mb-3">
