@@ -176,7 +176,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
             'yes': 'Confirm',
             'due_date': due_date
         })
-        self.assertRedirects(borrowing,'/accounts/login/?next=/home_page/', status_code=302, target_status_code=200)
+        self.assertRedirects(borrowing,'/accounts/login/?next=/librarian_home_page/', status_code=302, target_status_code=200)
         self.item.refresh_from_db()
         self.assertEqual(self.item.status,Item.STATUS_IN_CIRCULATION)
         self.assertEqual(self.item.location, 'Clark Hall')
@@ -212,16 +212,4 @@ class BorrowedItemsPageTestLibrarian(TestCase):
 
         self.assertRedirects(response, reverse('home_page_router'))
 
-class MarketPlaceTests(TestCase):
-    def setUp(self):
-        self.client = Client()
-        User = get_user_model()
-        self.user, _ = User.objects.get_or_create(username='user4')
-        self.user.set_password('pwd')
-        self.user.save()
-        self.profile, _ = Profile.objects.get_or_create(user=self.user, defaults={'userRole': 1})
-        self.owner = User.objects.get_or_create(username='user_theta')
-        self.borrower = User.objects.get_or_create(username='user_chi')
-        self.base_url = reverse("librarian_home_page")
-        self.client.force_login(self.user)
-        self.gotten_into_url = reverse("marketplace")
+
