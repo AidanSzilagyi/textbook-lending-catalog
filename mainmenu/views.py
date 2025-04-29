@@ -99,15 +99,19 @@ def unauth_home_page(request):
 def home_page(request):
     print("In home_page, rendering home_page.html")
     q = request.GET.get('q', '')
+
+    private_item_ids = Item.objects.filter(collections_of__visibility='private').values_list('id', flat=True).distinct()
+    items = Item.objects.exclude(id__in=private_item_ids).distinct()
+
     if q:
-        items = Item.objects.filter(
+        items = items.filter(
             Q(title__icontains=q) |
             Q(description__icontains=q) |
             Q(location__icontains=q) |
             Q(tags__name__icontains=q)
         ).distinct().order_by('-id')
     else:
-        items = Item.objects.all().order_by('-id')
+        items = items.order_by('-id')
 
     context = {
         'tags': Tag.objects.all(),
