@@ -33,9 +33,6 @@
       {% endif %}
     </p>
 
-    <!-- NEW info -->
-    <p><strong>Primary&nbsp;ID:</strong> {{ item.primary_identifier }}</p>
-
     <p>
       <strong>Collections:</strong>
       {% if item.collections_of.exists %}
@@ -47,6 +44,8 @@
         <em>Not in any collection</em>
       {% endif %}
     </p>
+
+    <p><strong>Primary&nbsp;ID:</strong> {{ item.uuid }}</p>
 
     <hr>
 
