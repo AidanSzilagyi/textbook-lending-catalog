@@ -537,13 +537,13 @@ def collection(request):
         form = CollectionForm()
     # Only filter for user-owned collections if logged in
     if request.user.is_authenticated:
-        user_collections = Collection.objects.filter(creator=request.user.profile)
+        user_collections = Collection.objects.filter(creator=request.user.profile).filter()
 
     collections = Collection.objects.all()
 
     if q:
         if request.user.is_authenticated:
-            user_collections = Collection.objects.filter(creator=request.user.profile)
+            user_collections = Collection.objects.filter(creator=request.user.profile).filter(Q(name__icontains=q))
         collections = collections.filter(Q(name__icontains=q))
 
     # For anonymous users: exclude private collections entirely
@@ -577,12 +577,10 @@ def collection_detail(request, collection_id):
 def edit_collection(request, collection_id):
     collection = get_object_or_404(Collection, id=collection_id)
 
-    # Step 1: Get all private items' IDs
     private_item_ids = Item.objects.filter(
         collections_of__visibility='private'
     ).values_list('id', flat=True)
 
-    # Step 2: Get allowed items: (not in private collections) OR (already in this collection)
     allowed_items = Item.objects.filter(
         Q(id__in=collection.items.values_list('id', flat=True)) |
         ~Q(id__in=private_item_ids)
@@ -590,20 +588,20 @@ def edit_collection(request, collection_id):
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection)
-        form.fields['items'].queryset = allowed_items  
-
-        if form.is_valid():
-            updated_collection = form.save(commit=False)
-
-            if request.user.profile.userRole == 0:
-                updated_collection.visibility = 'public'
-
-            updated_collection.save()
-            form.save_m2m()
-            return redirect('collection_detail', collection_id)
     else:
         form = CollectionForm(instance=collection)
-        form.fields['items'].queryset = allowed_items 
+
+    if request.user.profile.userRole == 0:  # Patron
+        form.fields['visibility'].choices = [('public', 'Public')]
+
+    # Limit selectable items either way
+    form.fields['items'].queryset = allowed_items
+
+    if request.method == 'POST' and form.is_valid():
+        updated_collection = form.save(commit=False)
+        updated_collection.save()
+        form.save_m2m()
+        return redirect('collection_detail', collection_id)
 
     return render(request, 'edit_collection.html', {
         'form': form,
