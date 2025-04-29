@@ -3,6 +3,9 @@ from .models import Profile
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
+from .views import borrowed_items, home_page_router
+
+
 class LibProfileViewTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -109,3 +112,22 @@ class PatronHomePageTests(TestCase):
     def test_not_logged_in(self):
         response = self.client.get(reverse('lent_items'))
         self.assertRedirects(response, '/accounts/login/?next=/lent_items/', status_code=302, target_status_code=200)
+
+class BorrowedItemsPageTestPatron(TestCase):
+    def setUp(self):
+        self.client = Client()
+        User = get_user_model()
+        self.user, _ = User.objects.get_or_create(username='user4')
+        self.user.set_password('pwd')
+        self.user.save()
+        self.profile, _ = Profile.objects.get_or_create(user=self.user, defaults={'userRole': 0})
+        self.base_url = reverse("home_page")
+        self.client.force_login(self.user)
+        self.gotten_into_url = reverse("borrowed_items")
+
+    def test_redirect_back_to_home_page(self):
+        response = self.client.get(reverse("home_page"))
+        self.assertEqual(response.status_code, 200)
+
+
+
