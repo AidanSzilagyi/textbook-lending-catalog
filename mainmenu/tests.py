@@ -140,7 +140,7 @@ class BorrowedItemsPageTestPatron(TestCase):
         self.profile, _ = Profile.objects.get_or_create(user=self.user, defaults={'userRole': 0})
         self.owner, _ = User.objects.get_or_create(username='user_alpha')
         self.borrower, _ = User.objects.get_or_create(username='user_gamma')
-        self.item, _ = Item.objects.get_or_create(name='To be borrowed',status = Item.STATUS_AVAILABLE, location = 'Clark Hall', description = 'The item is for testing purposes only', owner = self.owner)
+        self.item, _ = Item.objects.get_or_create(title='To be borrowed',status = Item.STATUS_AVAILABLE, location = 'Clark Hall', description = 'The item is for testing purposes only', owner = self.owner)
         self.base_url = reverse("home_page")
         self.client.force_login(self.user)
         self.gotten_into_url = reverse("borrowed_items")
@@ -171,7 +171,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         self.profile, _ = Profile.objects.get_or_create(user=self.user, defaults={'userRole': 1})
         self.owner, _ = User.objects.get_or_create(username='user_theta')
         self.borrower, _ = User.objects.get_or_create(username='user_chi')
-        self.item, _ = Item.objects.get_or_create(name='To be reviewed', status=Item.STATUS_REQUESTED,location='Clark Hall',description='The item is for testing purposes only',
+        self.item, _ = Item.objects.get_or_create(title='To be reviewed', status=Item.STATUS_REQUESTED,location='Clark Hall',description='The item is for testing purposes only',
                                                        owner=self.owner,
                                                     borrower=self.borrower)
         self.base_url = reverse("librarian_home_page")
@@ -239,14 +239,14 @@ class ItemDetailNavigationTests(TestCase):
 
         self.client.login(username='patron', password='testpass')
 
-        self.item1 = Item.objects.create(
+        self.item1,_ = Item.objects.get_or_create(
             title='Physics Textbook',
             status='available',
             location='Shelf A',
             description='Covers basic physics concepts.',
             owner=self.user
         )
-        self.item2 = Item.objects.create(
+        self.item2,_ = Item.objects.get_or_create(
             title='Chemistry Textbook',
             status='available',
             location='Shelf B',
