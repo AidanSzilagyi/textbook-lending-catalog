@@ -52,7 +52,15 @@ The main branch has Amazon S3 configured, which cannot be accessed locally. Prof
 
 6. Dev Patel
 - Role: Software Architect
--   
+- Created Profile Model which helps decide if the User is a librarian or patron.
+- Created the Collection Model, a page to view all collections, and a page to see more collection details.
+- Made it so the owner and librarian can edit and delete the collections.
+- Private Items can not be displayed when making a new collection.
+- Can't make a private collection if that item is in another collection.
+- Patrons can request access to private collections.
+- Led the Requirements change for collections and created a comprehensive report.
+- Various Debugging Tasks.
+- 
 
 # Licenses for Major Libraries/Frameworks
 | Library / Framework         | License        | URL                            |
