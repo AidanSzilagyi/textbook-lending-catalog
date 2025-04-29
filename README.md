@@ -22,3 +22,21 @@ The main branch has Amazon S3 configured, which cannot be accessed locally. Prof
 
 # Webpage
 https://supplysite-20c1e0704260.herokuapp.com
+
+# Member Contributions
+1. Zaid Contractor
+- Role: Scrum Master
+- 
+- 
+2. Rory Kretzer
+- Role: Requirements Manager
+- 
+4. Surya Vemulapalli
+- Role: Testing Manager
+- 
+5. Aidan Szilagyi
+- Role: DevOps Manager
+- 
+6. Dev Patel
+- Role: Software Architect
+-   
