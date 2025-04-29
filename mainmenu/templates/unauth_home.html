@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 {% load socialaccount %}
 
-{% block title %}Marketplace (Anonymous){% endblock %}
+{% block title %}Home (Anonymous){% endblock %}
 
 {% block extra_css %}
 <style>
-  /* Retain your styling */
   #itemForm, #tagForm {
     display: none;
     margin-top: 20px;
@@ -14,7 +13,6 @@
     max-height: 300px;
     overflow-y: auto;
   }
-  /* Style for the list items to mimic marketplace details */
   .item-list-item {
     padding: 10px;
     border-bottom: 1px solid #eaeaea;
@@ -41,7 +39,6 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
-        <!-- Minimal navigation for anonymous users -->
         <li class="nav-item"><a class="nav-link" href="{% url 'required_materials' %}">Required Materials</a></li>
         <li class="nav-item">
           <form action="{% provider_login_url 'google' %}" method="post">
@@ -57,13 +54,11 @@
 
 {% block content %}
 <div class="container mt-5">
-  <!-- Search info -->
   <div class="row mb-4">
     <div class="col text-end">
       <p class="lead">Browsing as anonymous user.</p>
     </div>
   </div>
-  <!-- Search Form -->
   <div class="row mb-4">
     <div class="col">
       <form class="d-flex" method="GET">
@@ -73,7 +68,6 @@
     </div>
   </div>
   
-  <!-- Scrollable List of Items -->
   <div class="scroll-container mt-4">
     <div class="list-group">
       {% for item in items %}
@@ -117,7 +111,6 @@
                 {% endif %}
               </small>
             </p>
-            <!-- No interactive buttons here -->
           </div>
         </div>
       </div>

@@ -3,7 +3,6 @@
 
 {% block content %}
 <div class="container mt-5">
-  <!-- Back to Homepage Button -->
   <div class="mb-3">
     <a href="{% url 'home_page' %}" class="btn btn-primary">Back to Homepage</a>
   </div>
@@ -13,7 +12,6 @@
       <h2>{{ user.first_name }} {{ user.last_name }}'s Profile</h2>
     </div>
     <div class="card-body">
-      <!-- Profile Picture Section -->
       <div class="text-center mb-4">
         {% if USE_AWS %}
           {% if user.profile.profile_picture and user.profile.profile_picture.url %}
@@ -26,14 +24,12 @@
         {% endif %}
       </div>
 
-      <!-- User Information Section -->
       <div class="mb-3">
         <p><strong>Real Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
         <p><strong>Email:</strong> {{ user.email }}</p>
         <p><strong>Date Joined:</strong> {{ user.date_joined|date:"F j, Y" }}</p>
       </div>
 
-      <!-- Optional Additional Profile Information -->
       <div class="mb-3">
         <h4>Additional Information</h4>
         {% if user.profile.major %}
@@ -53,7 +49,6 @@
         {% endif %}
       </div>
 
-      <!-- Profile Picture Update Form -->
       <div class="mb-3">
         <form action="{% url 'upload_pfp' %}" method="post" enctype="multipart/form-data">
           {% csrf_token %}
@@ -65,7 +60,6 @@
         </form>
       </div>
 
-      <!-- Edit Profile Button -->
       <div>
         <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile Information</a>
       </div>
