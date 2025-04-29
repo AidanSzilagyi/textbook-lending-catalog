@@ -7,9 +7,8 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body text-center">
-    
-                    {% if USE_AWS and user.profile.profile_picture and user.profile.profile_picture.url %}
-                        <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                    {% if USE_AWS and profile_user.profile.profile_picture and profile_user.profile.profile_picture.url %}
+                        <img src="{{ profile_user.profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                     {% else %}
                         <img src="{% static 'profile-placeholder.png' %}" alt="Profile Picture" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
                     {% endif %}
