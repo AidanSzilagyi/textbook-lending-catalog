@@ -212,4 +212,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
 
         self.assertRedirects(response, reverse('home_page_router'))
 
-
+class RequiredMaterialsTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        User = get_user_model()
