@@ -197,7 +197,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
             'item': self.item.pk,
             'no': 'Deny',
         })
-        self.assertRedirects(borrowing,'/accounts/login/?next=/home_page/', status_code=302, target_status_code=200)
+        self.assertRedirects(borrowing,'/accounts/login/?next=/librarian_home_page/', status_code=302, target_status_code=200)
         self.item.refresh_from_db()
         self.assertEqual(self.item.status,Item.STATUS_AVAILABLE)
         self.assertEqual(self.item.location, 'Clark Hall')
