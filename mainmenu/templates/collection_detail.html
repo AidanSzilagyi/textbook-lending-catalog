@@ -11,6 +11,10 @@
     overflow-x: hidden;
   }
 
+  h1, h2, h3 {
+    font-weight: bold;
+  }
+
   .top-bar {
     margin-top: 20px;
     display: flex;
@@ -20,11 +24,13 @@
   }
 
   .btn-homepage {
+    margin-top: 20px;
     margin-bottom: 10px;
   }
 
   .collection-header {
     text-align: center;
+    margin-bottom: 20px;
   }
 
   .collection-info {
@@ -69,7 +75,6 @@
 
 {% block content %}
 <div class="container">
-
   <div class="top-bar">
     <a href="{% url 'collections' %}" class="btn btn-primary btn-homepage">
       &larr; Back to Collections
@@ -83,9 +88,9 @@
 
   <div class="collection-info">
     <p>{{ collection.description }}</p>
-    <p><strong>People with access:</strong> {{ collection.creator }}
-      {% if collection.access %}
-        {% for c in collection.access.all %}, {{ c.name }}{% endfor %}
+    <p><strong>People with access:</strong> {{ collection.creator.user.username }}
+      {% if collection.access.all %}
+        {% for profile in collection.access.all %}, {{ profile.user.username }}{% endfor %}
       {% endif %}
     </p>
   </div>
@@ -122,13 +127,12 @@
     </div>
   {% else %}
     <h3 class="text-center text-danger mt-4">Sorry, you do not have access to view this collection.</h3>
-        <div class="text-center mt-3">
-    <form method="post" action="{% url 'request_access' collection.id %}">
-      {% csrf_token %}
-      <button type="submit" class="btn btn-info">Request Access</button>
-    </form>
-  </div>
+    <div class="text-center mt-3">
+      <form method="post" action="{% url 'request_access' collection.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-info">Request Access</button>
+      </form>
+    </div>
   {% endif %}
-
 </div>
 {% endblock %}

@@ -240,14 +240,7 @@ def mark_item_returned(request, uuid):
 @login_required
 def borrowed_items(request):
     if request.user.profile.userRole == 1:
-        borrowed_item_list = Item.objects.filter(owner=request.user, status='in_circulation')
-        requested_items = Item.objects.filter(owner=request.user, status='requested')
-        available_items = Item.objects.filter(status='available')
-        context = {
-            'borrowed_item_list': borrowed_item_list,
-            'requested_items': requested_items,
-            'available_items': available_items,
-        }
+        return HttpResponseRedirect(reverse('librarian_requests'))
     else:  
         borrowed_item_list = Item.objects.filter(borrower=request.user, status='in_circulation')
         available_items = Item.objects.filter(status='available')
@@ -255,7 +248,7 @@ def borrowed_items(request):
             'borrowed_item_list': borrowed_item_list,
             'available_items': available_items,
         }
-    return render(request, "borrowed_items.html", context)
+        return render(request, "borrowed_items.html", context)
 
 def available_to_requested(request):
     available_items = Item.objects.filter(status='available')
@@ -811,3 +804,48 @@ def delete_user_review(request, review_id):
     if next_url:
         return redirect(next_url)
     return redirect('user_profile', user_id=reviewed_user_id)
+
+@login_required
+def librarian_requests(request):
+    if request.user.profile.userRole != 1:
+        return HttpResponseForbidden("You are not authorized to view this page.")
+    
+    requested_items = Item.objects.filter(status='requested')
+    collection_access_requests = CollectionAccessRequest.objects.filter(status='pending')
+    
+    context = {
+        'requested_items': requested_items,
+        'collection_access_requests': collection_access_requests,
+    }
+    return render(request, "librarian_requests.html", context)
+
+@login_required
+def process_collection_access_request(request):
+    if request.user.profile.userRole != 1:
+        return HttpResponseForbidden("You are not authorized to process collection access requests.")
+    
+    try:
+        request_id = request.POST['request']
+        access_request = CollectionAccessRequest.objects.get(id=request_id)
+    except (KeyError, CollectionAccessRequest.DoesNotExist):
+        return HttpResponseRedirect(reverse('librarian_requests'))
+    
+    if 'action' in request.POST:
+        if request.POST['action'] == 'approve':
+            access_request.status = 'approved'
+            access_request.collection.access.add(access_request.user.profile)
+            Message.objects.create(
+                sender=request.user,
+                recipient=access_request.user,
+                content=f"Your request to access the collection '{access_request.collection.name}' has been approved."
+            )
+        elif request.POST['action'] == 'deny':
+            access_request.status = 'denied'
+            Message.objects.create(
+                sender=request.user,
+                recipient=access_request.user,
+                content=f"Your request to access the collection '{access_request.collection.name}' has been denied."
+            )
+        access_request.save()
+    
+    return HttpResponseRedirect(reverse('librarian_requests'))
