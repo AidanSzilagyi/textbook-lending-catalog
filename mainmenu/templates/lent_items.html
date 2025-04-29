@@ -31,6 +31,10 @@
                                     
                                     <div class="d-flex justify-content-between align-items-center">
                                         <a href="{% url 'item_detail' item.uuid %}" class="btn btn-primary">View Details</a>
+                                        <form method="post" action="{% url 'mark_item_returned' item.uuid %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success">Mark as Returned</button>
+                                        </form>
                                         <span class="badge bg-primary">{{ item.get_status_display }}</span>
                                     </div>
                                 </div>

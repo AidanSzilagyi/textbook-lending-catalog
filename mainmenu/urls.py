@@ -18,6 +18,7 @@ urlpatterns = [
     path("messaging/", views.messaging, name='messaging'),
     path("lent_items/", views.lent_items, name='lent_items'),
     path("borrowed_items/", views.borrowed_items, name='borrowed_items'),
+    path("mark_item_returned/<uuid:uuid>/", views.mark_item_returned, name='mark_item_returned'),
     # path("marketplace/", views.marketplace, name='marketplace'),
     path("librarian_home_page/", views.librarian_home_page, name='librarian_home_page'),
     path("homepage/", views.home_page_router, name='home_page_router'),

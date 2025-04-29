@@ -192,6 +192,37 @@ def lent_items(request):
     return render(request, "lent_items.html", context)
 
 @login_required
+def mark_item_returned(request, uuid):
+    item = get_object_or_404(Item, uuid=uuid)
+    
+    # Check if user is the owner of the item
+    if item.owner != request.user:
+        return HttpResponseForbidden("You do not have permission to mark this item as returned.")
+    
+    # Check if item is actually in circulation
+    if item.status != Item.STATUS_IN_CIRCULATION:
+        return HttpResponseForbidden("This item is not currently in circulation.")
+    
+    if request.method == 'POST':
+        item.status = Item.STATUS_AVAILABLE
+        item.borrower = None
+        item.due_date = None
+        item.save()
+        
+        # Create a message to notify the borrower
+        if item.borrower:
+            Message.objects.create(
+                sender=request.user,
+                recipient=item.borrower,
+                item=item,
+                content=f"The item '{item.title}' has been marked as returned by the librarian."
+            )
+        
+        return redirect('lent_items')
+    
+    return HttpResponseForbidden("Invalid request method.")
+
+@login_required
 def borrowed_items(request):
     if request.user.profile.userRole == 1:  # If user is a librarian
         borrowed_item_list = Item.objects.filter(owner=request.user, status='in_circulation')
