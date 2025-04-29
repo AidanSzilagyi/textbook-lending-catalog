@@ -164,7 +164,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
         self.message = Message.objects.get_or_create(sender=self.borrower, recipient=self.owner)
 
     def test_redirect_back_to_home_page(self):
-        response = self.client.get(reverse("librarian_home_page"))
+        response = self.client.get(reverse("home_page_router"))
         self.assertEqual(response.status_code, 200)
 
     def test_form_if_request_is_sent_yes(self):
@@ -197,7 +197,7 @@ class BorrowedItemsPageTestLibrarian(TestCase):
             'item': self.item.pk,
             'no': 'Deny',
         })
-        self.assertRedirects(borrowing,'/accounts/login/?next=/home_page/', status_code=302, target_status_code=200)
+        self.assertRedirects(borrowing,'/accounts/login/?next=/librarian_home_page/', status_code=302, target_status_code=200)
         self.item.refresh_from_db()
         self.assertEqual(self.item.status,Item.STATUS_AVAILABLE)
         self.assertEqual(self.item.location, 'Clark Hall')
@@ -212,4 +212,45 @@ class BorrowedItemsPageTestLibrarian(TestCase):
 
         self.assertRedirects(response, reverse('home_page_router'))
 
+class ItemDetailNavigationTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        User = get_user_model()
 
+        # Create a user and profile
+        self.user = User.objects.create_user(username='patron', password='testpass', email='patron@example.com')
+        Profile.objects.create(user=self.user, userRole=0)
+
+        # Log in user
+        self.client.login(username='patron', password='testpass')
+
+        # Create two items
+        self.item1 = Item.objects.create(
+            title='Physics Textbook',
+            status='available',
+            location='Shelf A',
+            description='Covers basic physics concepts.',
+            owner=self.user
+        )
+        self.item2 = Item.objects.create(
+            title='Chemistry Textbook',
+            status='available',
+            location='Shelf B',
+            description='Organic chemistry fundamentals.',
+            owner=self.user
+        )
+
+    def test_item_detail_page_displays_correct_item(self):
+        # Go to item detail page of item1
+        response = self.client.get(reverse('item_detail', args=[self.item1.uuid]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Physics Textbook')
+        self.assertNotContains(response, 'Chemistry Textbook')
+
+        # Go to item detail page of item2
+        response = self.client.get(reverse('item_detail', args=[self.item2.uuid]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Chemistry Textbook')
+        self.assertNotContains(response, 'Physics Textbook')
