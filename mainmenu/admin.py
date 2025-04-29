@@ -23,7 +23,6 @@ from mainmenu.models import Tag
 
 admin.site.register(TestObject)
 admin.site.register(Class)
-admin.site.register(Item)
 admin.site.register(Collection)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'user_username', 'user_email', 'userRole', 'user_first_name', 'user_last_name', 'user_password')
@@ -53,3 +52,7 @@ admin.site.register(Profile, ProfileAdmin)
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     pass
+class ItemAdmin(admin.ModelAdmin):
+    list_display = ('title', 'primary_identifier', 'status', 'owner') 
+
+admin.site.register(Item, ItemAdmin)

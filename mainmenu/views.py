@@ -40,6 +40,8 @@ from .serializers import NotificationSerializer
 from django.contrib import messages
 
 def login_page(request):
+    if request.user.is_authenticated:
+        return redirect('home_page_router')   
     return render(request, "login.html")
 
 def index(request):

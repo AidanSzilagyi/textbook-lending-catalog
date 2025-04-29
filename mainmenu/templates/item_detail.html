@@ -4,10 +4,9 @@
 {% block content %}
   <div class="container py-5">
     <h1 class="mb-4">{{ item.title }}</h1>
-    <p>
-      <strong>Status:</strong>
-      {{ item.get_status_display }}
-    </p>
+
+    <p><strong>Status:</strong> {{ item.get_status_display }}</p>
+
     <p>
       <strong>Posted by:</strong>
       {% if item.owner and item.owner.id %}
@@ -19,14 +18,10 @@
         <em>Unknown owner</em>
       {% endif %}
     </p>
-    <p>
-      <strong>Location:</strong>
-      {{ item.location|default:"(none)" }}
-    </p>
-    <p>
-      <strong>Description:</strong><br>
-      {{ item.description|linebreaks }}
-    </p>
+
+    <p><strong>Location:</strong> {{ item.location|default:"(none)" }}</p>
+    <p><strong>Description:</strong><br>{{ item.description|linebreaks }}</p>
+
     <p>
       <strong>Tags:</strong>
       {% if item.tags.exists %}
@@ -35,6 +30,21 @@
         {% endfor %}
       {% else %}
         <em>No tags</em>
+      {% endif %}
+    </p>
+
+    <!-- NEW info -->
+    <p><strong>Primary&nbsp;ID:</strong> {{ item.primary_identifier }}</p>
+
+    <p>
+      <strong>Collections:</strong>
+      {% if item.collections_of.exists %}
+        {% for coll in item.collections_of.all %}
+          <a href="{% url 'collection_detail' collection_id=coll.id %}"
+             class="badge bg-info text-dark me-1">{{ coll.name }}</a>
+        {% endfor %}
+      {% else %}
+        <em>Not in any collection</em>
       {% endif %}
     </p>
 
@@ -66,7 +76,9 @@
           <div class="card mb-3">
             <div class="card-body">
               <h6 class="card-title">
-                <a href="{% url 'user_profile' user_id=review.reviewer.id %}">{{ review.reviewer.username }}</a>
+                <a href="{% url 'user_profile' user_id=review.reviewer.id %}">
+                  {{ review.reviewer.username }}
+                </a>
                 <div class="text-warning">
                   {% for i in "12345"|make_list %}
                     {% if forloop.counter <= review.rating %}
@@ -94,7 +106,9 @@
           {% if user_review %}Edit Your Review{% else %}Write a Review{% endif %}
         </a>
         {% if user_review %}
-          <form method="post" action="{% url 'delete_item_review' review_id=user_review.id %}?next={% url 'item_detail' uuid=item.uuid %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this review?');">
+          <form method="post"
+                action="{% url 'delete_item_review' review_id=user_review.id %}?next={% url 'item_detail' uuid=item.uuid %}"
+                style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this review?');">
             {% csrf_token %}
             <button type="submit" class="btn btn-outline-danger">Delete Review</button>
           </form>
@@ -102,26 +116,29 @@
       </div>
     {% endif %}
 
+    <!-- Action buttons -->
     <div class="mt-4">
       {% if user.profile.userRole == 1 and item.owner == user %}
         {% if item.status == 'available' %}
           <a href="{% url 'edit_item' uuid=item.uuid %}" class="btn btn-primary me-2">Edit Item</a>
         {% endif %}
-        <form method="post" action="{% url 'delete_item' uuid=item.uuid %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this item?');">
+        <form method="post" action="{% url 'delete_item' uuid=item.uuid %}"
+              style="display:inline;"
+              onsubmit="return confirm('Are you sure you want to delete this item?');">
           {% csrf_token %}
           <button type="submit" class="btn btn-danger me-2">Delete Item</button>
         </form>
       {% endif %}
+
       {% if user.is_authenticated and user.profile.userRole == 0 and item.status == 'available' and item.owner != user %}
-        <form method="post" action="{% url 'available_to_requested' %}" style="display: inline;">
+        <form method="post" action="{% url 'available_to_requested' %}" style="display:inline;">
           {% csrf_token %}
           <input type="hidden" name="item" value="{{ item.pk }}">
           <button type="submit" class="btn btn-success me-2">Request to Borrow</button>
         </form>
       {% endif %}
-      <a href="{% url 'home_page' %}" class="btn btn-outline-secondary me-2">
-        &larr; Back to Home
-      </a>
+
+      <a href="{% url 'home_page' %}" class="btn btn-outline-secondary me-2">&larr; Back to Home</a>
     </div>
   </div>
 {% endblock %}
