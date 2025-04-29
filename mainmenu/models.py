@@ -110,6 +110,11 @@ class Item(models.Model):
         (STATUS_LOST, 'Lost'),
         (STATUS_REQUESTED, 'Requested'),
     ]
+    primary_identifier = models.CharField(
+        max_length=12,
+        unique=True,
+        editable=False,
+    ) 
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     title = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_AVAILABLE)
