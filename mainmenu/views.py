@@ -478,17 +478,18 @@ def collection(request):
         form = CollectionForm(request.POST)
         if form.is_valid():
             collection = form.save(commit=False)
-            # Always set the creator to the current user's profile
             if not collection.creator_id:
                 collection.creator = request.user.profile
             collection.save()
-            form.save_m2m()  # Save ManyToMany relationships
-            return redirect('collections')# Redirect to homepage after submission
+            form.save_m2m()
+            return redirect('collections')
+        # No need for manual error_message setting anymore!
+
     else:
         form = CollectionForm()
 
     collections = Collection.objects.all()
-    public_collections = collections.filter(visibility= Collection.PUBLIC)
+    public_collections = collections.filter(visibility=Collection.PUBLIC)
     user_collections = Collection.objects.filter(creator=request.user.profile)
 
     if q:
@@ -496,9 +497,17 @@ def collection(request):
         user_collections = user_collections.filter(Q(name__icontains=q))
         collections = collections.filter(Q(name__icontains=q))
 
-    items = Item.objects.all()
+    private_item_ids = Item.objects.filter(collections_of__visibility='private').values_list('id', flat=True).distinct()
+    items = Item.objects.exclude(id__in=private_item_ids).distinct()
 
-    return render(request, 'collection.html', {'form': form, 'collections': collections, 'items' : items, 'user_collections': user_collections, 'public_collections': public_collections})
+    return render(request, 'collection.html', {
+        'form': form,
+        'collections': collections,
+        'items': items,
+        'user_collections': user_collections,
+        'public_collections': public_collections,
+    })
+
 
 def collection_detail(request, collection_id):
     q = request.GET.get('q', '')
@@ -512,31 +521,68 @@ def collection_detail(request, collection_id):
     })
 
 def edit_collection(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
 
-    collection = get_object_or_404(Collection, pk=collection_id)
+    # Step 1: Get all private items' IDs
+    private_item_ids = Item.objects.filter(
+        collections_of__visibility='private'
+    ).values_list('id', flat=True)
 
-    # Only allow editing if:
-    # 1. User is the creator of the collection, OR
-    # 2. User is a librarian AND has access to the collection
-    if not (request.user.profile == collection.creator or 
-            (request.user.profile.userRole == 1 and request.user.profile in collection.access.all())):
-        return HttpResponseForbidden("You do not have permission to edit this collection.")
+    # Step 2: Get allowed items: (not in private collections) OR (already in this collection)
+    allowed_items = Item.objects.filter(
+        Q(id__in=collection.items.values_list('id', flat=True)) |
+        ~Q(id__in=private_item_ids)
+    ).distinct()
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection)
+        form.fields['items'].queryset = allowed_items  # important: limit choices!
+
         if form.is_valid():
-            form.save()
-            return redirect('collection_detail', collection_id=collection.id)
+            updated_collection = form.save(commit=False)
+
+            if request.user.profile.userRole == 0:
+                updated_collection.visibility = 'public'
+
+            updated_collection.save()
+            form.save_m2m()
+            return redirect('collection_detail', collection_id)
     else:
         form = CollectionForm(instance=collection)
+        form.fields['items'].queryset = allowed_items  # important: limit choices!
 
-    return render(request, 'edit_collection.html', {'form': form, 'collection': collection})
+    return render(request, 'edit_collection.html', {
+        'form': form,
+        'collection': collection,
+    })
 
 
 @login_required
 def request_access(request, collection_id):
     collection = get_object_or_404(Collection, pk=collection_id)
+
+    # Create or get the access request
     CollectionAccessRequest.objects.get_or_create(user=request.user, collection=collection)
+
+    # Send a message to the collection creator
+    Message.objects.create(
+        sender=request.user,
+        recipient=collection.creator.user,  # the actual User instance
+        content=f"{request.user.username} has requested access to your collection: '{collection.name}'."
+    )
+
+    # Send a message to all librarians too
+    librarians = Profile.objects.filter(userRole=1)
+    for librarian in librarians:
+        # Skip if the librarian is the same as the collection creator (already messaged)
+        if librarian != collection.creator.user:
+            Message.objects.create(
+                sender=request.user,
+                recipient=librarian.user,
+                content=f"{request.user.username} has requested access to the collection '{collection.name}'."
+            )
+
+    messages.success(request, "Access request sent successfully!")
     return redirect('collection_detail', collection_id=collection.id)
 @login_required
 def edit_profile(request):
@@ -648,7 +694,7 @@ def delete_item(request, uuid):
     
     if request.method == 'POST':
         item.delete()
-        return redirect('librarian_home_page')
+        return home_page_router(request)
     
     return HttpResponseForbidden("Invalid request method.")
 
@@ -701,7 +747,7 @@ def user_reviews(request):
 @login_required
 def delete_collection(request, collection_id):
     collection = get_object_or_404(Collection, id=collection_id)
-    if collection.creator != request.user.profile:
+    if collection.creator != request.user.profile or request.user.profile.userRole != 1:
         return HttpResponseForbidden("You do not have permission to delete this collection.")
     if request.method == "POST":
         collection.delete()

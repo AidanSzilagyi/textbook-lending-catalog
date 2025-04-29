@@ -58,6 +58,38 @@ class CollectionForm(forms.ModelForm):
                 'items': forms.SelectMultiple(attrs={'class': 'form-select'}),
                 'visibility': forms.Select(attrs={'class': 'form-select'}),
             }
+
+        def clean(self):
+                cleaned_data = super().clean()
+                selected_items = cleaned_data.get('items')
+                visibility = cleaned_data.get('visibility')
+
+                if visibility == 'private' and selected_items:
+                    for item in selected_items:
+                        # Check if this item exists in any *other* public collections
+                        public_collections = item.collections_of.filter(visibility='public')
+                        if public_collections.exists():
+                            raise forms.ValidationError(
+                                f"Item '{item.title}' is already in a public collection. "
+                                f"Remove it from public collections before adding to a private one."
+                            )
+                return cleaned_data
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+            # Exclude items already in private collections
+            private_items = Item.objects.filter(collections_of__visibility='private').distinct()
+
+            # If editing an existing collection, allow its own items even if private
+            instance = kwargs.get('instance')
+            if instance:
+                allowed_ids = instance.items.values_list('id', flat=True)
+                self.fields['items'].queryset = Item.objects.exclude(id__in=private_items).union(
+                    Item.objects.filter(id__in=allowed_ids))
+            else:
+                self.fields['items'].queryset = Item.objects.exclude(id__in=private_items)
+
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
