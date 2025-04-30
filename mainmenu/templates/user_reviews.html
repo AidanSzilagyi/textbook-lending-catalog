@@ -2,6 +2,13 @@
 {% load review_tags %}
 
 {% block content %}
+
+{% if user.is_authenticated %}
+        <div class="mb-3 text-end" style="margin-left: auto; margin-right: 0;">
+            <p class="mb-0">Logged in as {{ user.email }}</p>
+      </div>
+{% endif %}
+
 <div class="container mt-4">
     <h1 class="mb-4">My Reviews</h1>
     

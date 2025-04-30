@@ -99,15 +99,19 @@ def unauth_home_page(request):
 def home_page(request):
     print("In home_page, rendering home_page.html")
     q = request.GET.get('q', '')
+
+    private_item_ids = Item.objects.filter(collections_of__visibility='private').values_list('id', flat=True).distinct()
+    items = Item.objects.exclude(id__in=private_item_ids).distinct()
+
     if q:
-        items = Item.objects.filter(
+        items = items.filter(
             Q(title__icontains=q) |
             Q(description__icontains=q) |
             Q(location__icontains=q) |
             Q(tags__name__icontains=q)
         ).distinct().order_by('-id')
     else:
-        items = Item.objects.all().order_by('-id')
+        items = items.order_by('-id')
 
     context = {
         'tags': Tag.objects.all(),
@@ -147,13 +151,17 @@ def librarian_home_page(request):
         'q': q,
     })
 
-@login_required
+
 def profile(request, user_id=None):
     if user_id:
         user = get_object_or_404(User, id=user_id)
     else:
         user = request.user
-    
+    collections = Collection.objects.all().filter(creator=user.profile)
+
+    if not request.user.is_authenticated:
+        collections = collections.exclude(visibility='private')
+
     user_reviews = UserReview.objects.filter(reviewed_user=user)
     avg_user_rating = user_reviews.aggregate(Avg('rating'))['rating__avg'] or 0
     if avg_user_rating:
@@ -181,6 +189,7 @@ def profile(request, user_id=None):
         'user_reviews': user_reviews,
         'avg_user_rating': avg_user_rating,
         'user_review': user_review,
+        'collections': collections,
     }
     return render(request, 'mainmenu/profile.html', context)
 
@@ -502,7 +511,6 @@ def item_post(request):
         'form': form
     })
 
-@login_required
 def item_detail(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
     user_review = None
@@ -537,13 +545,13 @@ def collection(request):
         form = CollectionForm()
     # Only filter for user-owned collections if logged in
     if request.user.is_authenticated:
-        user_collections = Collection.objects.filter(creator=request.user.profile)
+        user_collections = Collection.objects.filter(creator=request.user.profile).filter()
 
     collections = Collection.objects.all()
 
     if q:
         if request.user.is_authenticated:
-            user_collections = Collection.objects.filter(creator=request.user.profile)
+            user_collections = Collection.objects.filter(creator=request.user.profile).filter(Q(name__icontains=q))
         collections = collections.filter(Q(name__icontains=q))
 
     # For anonymous users: exclude private collections entirely
@@ -577,12 +585,10 @@ def collection_detail(request, collection_id):
 def edit_collection(request, collection_id):
     collection = get_object_or_404(Collection, id=collection_id)
 
-    # Step 1: Get all private items' IDs
     private_item_ids = Item.objects.filter(
         collections_of__visibility='private'
     ).values_list('id', flat=True)
 
-    # Step 2: Get allowed items: (not in private collections) OR (already in this collection)
     allowed_items = Item.objects.filter(
         Q(id__in=collection.items.values_list('id', flat=True)) |
         ~Q(id__in=private_item_ids)
@@ -590,20 +596,20 @@ def edit_collection(request, collection_id):
 
     if request.method == 'POST':
         form = CollectionForm(request.POST, instance=collection)
-        form.fields['items'].queryset = allowed_items  
-
-        if form.is_valid():
-            updated_collection = form.save(commit=False)
-
-            if request.user.profile.userRole == 0:
-                updated_collection.visibility = 'public'
-
-            updated_collection.save()
-            form.save_m2m()
-            return redirect('collection_detail', collection_id)
     else:
         form = CollectionForm(instance=collection)
-        form.fields['items'].queryset = allowed_items 
+
+    if request.user.profile.userRole == 0:  # Patron
+        form.fields['visibility'].choices = [('public', 'Public')]
+
+    # Limit selectable items either way
+    form.fields['items'].queryset = allowed_items
+
+    if request.method == 'POST' and form.is_valid():
+        updated_collection = form.save(commit=False)
+        updated_collection.save()
+        form.save_m2m()
+        return redirect('collection_detail', collection_id)
 
     return render(request, 'edit_collection.html', {
         'form': form,
@@ -743,31 +749,32 @@ def delete_item(request, uuid):
 @login_required
 def edit_item(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
-    
+
     if request.user.profile.userRole != 1 or item.owner != request.user:
         return HttpResponseForbidden("You do not have permission to edit this item.")
-    
     if item.status != Item.STATUS_AVAILABLE:
         return HttpResponseForbidden("You can only edit available items.")
-    
+
     if request.method == 'POST':
         form = ItemForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
-            item = form.save()
-            
-            if request.FILES.getlist('images'):
-                item.images.all().delete()
-                for f in request.FILES.getlist('images'):
-                    img = ItemImage.objects.create(image=f)
-                    item.images.add(img)
-            
-            return redirect('item_detail', uuid=uuid)
+            form.save()  
+
+            for img_id in request.POST.getlist('delete_image_ids'):
+                item.images.filter(id=img_id).delete()
+
+            for f in request.FILES.getlist('images'):
+                img = ItemImage.objects.create(image=f)
+                item.images.add(img)
+
+            messages.success(request, "Item updated successfully!")
+            return redirect('item_detail', uuid=item.uuid)
     else:
         form = ItemForm(instance=item)
-    
+
     return render(request, 'edit_item.html', {
         'form': form,
-        'item': item
+        'item': item,
     })
 
 @login_required

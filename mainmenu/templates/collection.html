@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Collections{% endblock %}
 
@@ -22,10 +23,6 @@
     flex-wrap: wrap;
   }
 
-  .btn-homepage {
-    margin-bottom: 10px;
-  }
-
   .form-control {
     max-width: 500px;
     margin: 0 auto 20px auto;
@@ -43,10 +40,6 @@
     padding: 15px 20px;
     margin-bottom: 15px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
-
-  .navbar-nav .nav-link {
-    font-size: 1.1rem;
   }
 
   .modal-header {
@@ -83,15 +76,18 @@
 
   <div class="top-bar">
     {% if user.is_authenticated %}
-      <p class="mb-0">Logged in as {{ user.email }}</p>
+        <div class="mb-3 text-end" style="margin-left: auto; margin-right: 0;">
+            <p class="mb-0">Logged in as {{ user.email }}</p>
+      </div>
     {% endif %}
+
   </div>
 
   <h1 class="text-center my-4">Collections</h1>
 
   <form method="get" class="mb-4">
     <input type="text" name="q" value="{{ q }}" placeholder="Search collections by title" class="form-control" />
-  </form>
+    </form>
 
   {% if user.is_authenticated %}
     <div class="section-header">
@@ -111,7 +107,7 @@
         {% endfor %}
       </ul>
     {% else %}
-      <p class="text-center">You have no collections.</p>
+      <p class="text-center">No collections.</p>
     {% endif %}
   {% endif %}
 
@@ -140,7 +136,16 @@
         <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="post" action="{% url 'collections' %}">
+          <form style="padding: 10px 10px 10px 10px;" method="post" action="{% url 'collections' %}">
+              <div class="mb-3">
+              <label for="access" class="form-label">Grant Access To</label>
+              <select class="form-select" id="access" name="access" multiple>
+                {% for profile in form.access.field.queryset %}
+                  <option value="{{ profile.id }}">{{ profile.user.username }}</option>
+                {% endfor %}
+          </select>
+          <small class="form-text text-muted">Select users (excluding librarians) who can access this collection.</small>
+</div>
         {% csrf_token %}
         <div class="mb-3">
           <label for="name" class="form-label">Collection Title</label>

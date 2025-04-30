@@ -47,6 +47,7 @@
         {% else %}
           <p><em>No birthday provided. <a href="{% url 'edit_profile' %}">Add one?</a></em></p>
         {% endif %}
+          <p><strong>Date_Created:</strong> {{ user.profile.date_created }}</p>
       </div>
 
       <div class="mb-3">

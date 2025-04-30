@@ -67,13 +67,14 @@ class ItemForm(forms.ModelForm):
 class CollectionForm(forms.ModelForm):
         class Meta:
             model = Collection
-            fields = ['name', 'description', 'items', 'visibility']
+            fields = ['name', 'description', 'items', 'visibility', 'access']
             widgets = {
                 'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter collection title'}),
                 'description': forms.Textarea(
                     attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter description'}),
                 'items': forms.SelectMultiple(attrs={'class': 'form-select'}),
                 'visibility': forms.Select(attrs={'class': 'form-select'}),
+                'access': forms.SelectMultiple(attrs={'class': 'form-select'}),
             }
 
         def clean(self):
@@ -81,9 +82,12 @@ class CollectionForm(forms.ModelForm):
                 selected_items = cleaned_data.get('items')
                 visibility = cleaned_data.get('visibility')
 
+                instance = self.instance
+
+
                 if visibility == 'private' and selected_items:
                     for item in selected_items:
-                        public_collections = item.collections_of.filter(visibility='public')
+                        public_collections = item.collections_of.exclude(id=instance.id).filter(visibility='public')
                         if public_collections.exists():
                             raise forms.ValidationError(
                                 f"Item '{item.title}' is already in a public collection. "
@@ -92,6 +96,7 @@ class CollectionForm(forms.ModelForm):
                 return cleaned_data
 
         def __init__(self, *args, **kwargs):
+            user = kwargs.pop('user', None)
             super().__init__(*args, **kwargs)
 
             private_items = Item.objects.filter(collections_of__visibility='private').distinct()
@@ -103,6 +108,12 @@ class CollectionForm(forms.ModelForm):
                     Item.objects.filter(id__in=allowed_ids))
             else:
                 self.fields['items'].queryset = Item.objects.exclude(id__in=private_items)
+
+            user = kwargs.pop('user', None)  # pull user manually
+            if user and user.profile.userRole == 0:  # Patron role
+                self.fields['visibility'].choices = [('public', 'Public')]  # Only public
+            self.fields['access'].queryset = Profile.objects.exclude(userRole=1)
+
 
 class ProfileForm(forms.ModelForm):
     class Meta:

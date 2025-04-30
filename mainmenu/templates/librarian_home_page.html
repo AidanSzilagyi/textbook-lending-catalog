@@ -108,7 +108,6 @@
     <div class="col text-start">
       <button id="postItemBtn" class="btn btn-primary">Add New Item</button>
       <button id="addTagBtn" class="btn btn-info ms-2">Add Tag</button>
-      <!-- <a href="{% url 'add_item' %}" class="btn btn-success ms-2">Add New Item</a> -->
     </div>
   </div>
 
@@ -157,17 +156,16 @@
   </div>
 
   <div class="scroll-container">
-    <div class="row">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
       {% for item in items %}
-      <div class="col-md-4 mb-4">
+      <div class="col">
         <a href="{% url 'item_detail' item.uuid %}" class="text-decoration-none text-reset">
           <div class="card h-100">
             {% if USE_AWS and item.images.first %}
               <img src="{{ item.images.first.image.url }}" class="card-img-top default-image" alt="{{ item.title }}">
             {% else %}
-              <img src="{% static 'mainmenu/images/default_textbook.png' %}" class="card-img-top default-image" alt="Default textbook image">
+              <img src="{% static 'mainmenu/images/default_textbook.png' %}" class="card-img-top default-image" alt="Default textbook">
             {% endif %}
-
             <div class="card-body">
               <h5 class="card-title">{{ item.title }}</h5>
               <p class="mb-1">
@@ -175,7 +173,22 @@
                   <span class="badge">{{ tag.name }}</span>
                 {% endfor %}
               </p>
-              <p class="mb-1"><small>Status: <span class="badge bg-{{ item.status|yesno:'success,secondary' }}">{{ item.get_status_display }}</span></small></p>
+              <p class="mb-1"><small>Owner: {{ item.owner|default:"None" }}</small></p>
+              <p class="mb-1">
+                <small>Status:
+                  {% if item.status == 'available' %}
+                    <span class="badge bg-success">{{ item.get_status_display }}</span>
+                  {% elif item.status == 'in_circulation' %}
+                    <span class="badge bg-primary">{{ item.get_status_display }}</span>
+                  {% elif item.status == 'repairing' %}
+                    <span class="badge bg-warning text-dark">{{ item.get_status_display }}</span>
+                  {% elif item.status == 'lost' %}
+                    <span class="badge bg-danger">{{ item.get_status_display }}</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ item.get_status_display }}</span>
+                  {% endif %}
+                </small>
+              </p>
               <p class="mb-1">
                 {% if item.reviews.exists %}
                   <span class="rating-stars">
