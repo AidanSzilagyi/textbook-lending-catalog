@@ -87,7 +87,11 @@
   </div>
 
   <div class="collection-info">
-    <p>{{ collection.description }}</p>
+      {% if collection.description %}
+  <p>{{ collection.description }}</p>
+  {% else %}
+  <p>No Description</p>
+    {% endif %}
      <p> Creator: {{ collection.creator.user.username }}</p>
     {% if collection.visibility == 'public' %}
         Collection is Public
