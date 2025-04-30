@@ -88,11 +88,12 @@
 
   <div class="collection-info">
     <p>{{ collection.description }}</p>
+     <p> Creator: {{ collection.creator.user.username }}</p>
     {% if collection.visibility == 'public' %}
         Collection is Public
     {% else %}
         Collection is Private
-        <p><strong>People with access:</strong> {{ collection.creator.user.username }}
+        <p><strong>People with access:</strong>
           {% if collection.access.all %}
             {% for profile in collection.access.all %}, {{ profile.user.username }}{% endfor %}
           {% endif %}
