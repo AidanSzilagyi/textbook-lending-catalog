@@ -50,9 +50,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="container d-flex justify-content-between align-items-center mt-2">
-  <p class="mb-0">Logged in as {{ user.email }}</p>
-</div>
+{% if user.is_authenticated %}
+        <div class="mb-3 text-end" style="margin-left: auto; margin-right: 0;">
+            <p class="mb-0">Logged in as {{ user.email }}</p>
+      </div>
+{% endif %}
 
 <div class="page-header">
   <h2>Messaging</h2>
