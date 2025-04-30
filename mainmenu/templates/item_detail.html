@@ -51,18 +51,35 @@
 
     <h4>Images</h4>
     {% if USE_AWS and item.images.exists %}
-      <div class="row">
-        {% for img in item.images.all %}
-          <div class="col-md-4 mb-3">
-            <img src="{{ img.image.url }}" class="img-fluid rounded" alt="{{ img.caption }}">
-            {% if img.caption %}
-              <p class="mt-1 text-muted">{{ img.caption }}</p>
-            {% endif %}
-          </div>
-        {% endfor %}
+      <div id="itemCarousel{{ item.pk }}" class="carousel slide mb-4" data-bs-ride="carousel" style="max-width:500px;">
+        <div class="carousel-inner rounded">
+          {% for img in item.images.all %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <img src="{{ img.image.url }}" class="d-block w-100" alt="{{ img.caption }}">
+              {% if img.caption %}
+                <div class="carousel-caption d-none d-md-block">
+                  <p class="bg-dark bg-opacity-50 rounded px-2">{{ img.caption }}</p>
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+
+        {% if item.images.count > 1 %}
+          <button class="carousel-control-prev" type="button"
+                  data-bs-target="#itemCarousel{{ item.pk }}" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button class="carousel-control-next" type="button"
+                  data-bs-target="#itemCarousel{{ item.pk }}" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        {% endif %}
       </div>
-    {% else %}
-      <p><em>No images uploaded.</em></p>
+      {% else %}
+        <p><em>No images uploaded.</em></p>
     {% endif %}
 
     <hr>
