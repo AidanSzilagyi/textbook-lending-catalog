@@ -35,11 +35,29 @@
           <div class="form-text">Hold Ctrl (Windows) or ⌘ (Mac) to select multiple tags.</div>
         </div>
 
-        <div class="mb-3">
-          <label for="{{ form.images.id_for_label }}" class="form-label">Images</label>
-          {{ form.images }}
-          <div class="form-text">Current images will be replaced if new ones are uploaded.</div>
+        <div class="mb-4">
+          <label for="id_images" class="form-label">Add Images</label>
+          <input type="file" name="images" id="id_images" multiple class="form-control">
+          <div class="form-text">
+            Any files picked here will be <strong>added</strong> to the existing gallery.
+          </div>
         </div>
+
+        {% if item.images.exists %}
+          <h5>Existing Images</h5>
+          <div class="row mb-4">
+            {% for img in item.images.all %}
+              <div class="col-md-3 text-center mb-3">
+                <img src="{{ img.image.url }}" class="img-fluid rounded mb-1" alt="">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="delete_image_ids" value="{{ img.id }}" id="img{{ img.id }}">
+                  <label class="form-check-label" for="img{{ img.id }}">Remove</label>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
 
         {% if form.errors %}
           <div class="alert alert-danger">
@@ -56,4 +74,4 @@
     </div>
   </div>
 </div>
-{% endblock %} 
+{% endblock %}

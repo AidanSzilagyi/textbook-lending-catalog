@@ -749,31 +749,32 @@ def delete_item(request, uuid):
 @login_required
 def edit_item(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
-    
+
     if request.user.profile.userRole != 1 or item.owner != request.user:
         return HttpResponseForbidden("You do not have permission to edit this item.")
-    
     if item.status != Item.STATUS_AVAILABLE:
         return HttpResponseForbidden("You can only edit available items.")
-    
+
     if request.method == 'POST':
         form = ItemForm(request.POST, request.FILES, instance=item)
         if form.is_valid():
-            item = form.save()
-            
-            if request.FILES.getlist('images'):
-                item.images.all().delete()
-                for f in request.FILES.getlist('images'):
-                    img = ItemImage.objects.create(image=f)
-                    item.images.add(img)
-            
-            return redirect('item_detail', uuid=uuid)
+            form.save()  
+
+            for img_id in request.POST.getlist('delete_image_ids'):
+                item.images.filter(id=img_id).delete()
+
+            for f in request.FILES.getlist('images'):
+                img = ItemImage.objects.create(image=f)
+                item.images.add(img)
+
+            messages.success(request, "Item updated successfully!")
+            return redirect('item_detail', uuid=item.uuid)
     else:
         form = ItemForm(instance=item)
-    
+
     return render(request, 'edit_item.html', {
         'form': form,
-        'item': item
+        'item': item,
     })
 
 @login_required
