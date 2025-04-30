@@ -82,9 +82,12 @@ class CollectionForm(forms.ModelForm):
                 selected_items = cleaned_data.get('items')
                 visibility = cleaned_data.get('visibility')
 
+                instance = self.instance
+
+
                 if visibility == 'private' and selected_items:
                     for item in selected_items:
-                        public_collections = item.collections_of.filter(visibility='public')
+                        public_collections = item.collections_of.exclude(id=instance.id).filter(visibility='public')
                         if public_collections.exists():
                             raise forms.ValidationError(
                                 f"Item '{item.title}' is already in a public collection. "
@@ -93,6 +96,7 @@ class CollectionForm(forms.ModelForm):
                 return cleaned_data
 
         def __init__(self, *args, **kwargs):
+            user = kwargs.pop('user', None)
             super().__init__(*args, **kwargs)
 
             private_items = Item.objects.filter(collections_of__visibility='private').distinct()

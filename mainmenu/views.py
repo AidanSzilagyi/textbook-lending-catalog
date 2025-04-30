@@ -151,15 +151,16 @@ def librarian_home_page(request):
         'q': q,
     })
 
-@login_required
+
 def profile(request, user_id=None):
     if user_id:
         user = get_object_or_404(User, id=user_id)
     else:
         user = request.user
-
     collections = Collection.objects.all().filter(creator=user.profile)
 
+    if not request.user.is_authenticated:
+        collections = collections.exclude(visibility='private')
 
     user_reviews = UserReview.objects.filter(reviewed_user=user)
     avg_user_rating = user_reviews.aggregate(Avg('rating'))['rating__avg'] or 0
