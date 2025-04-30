@@ -35,7 +35,7 @@
                     
                     <h4>Collections</h4>
                     <div class="list-group">
-                        {% for collection in profile_user.collections.all %}
+                        {% for collection in collections %}
                             <a href="{% url 'collection_detail' collection.id %}" class="list-group-item list-group-item-action">
                                 {{ collection.name }}
                             </a>
@@ -141,6 +141,10 @@
                                 {% endif %}
                             {% endif %}
                         </li>
+                        <li class="list-group-item">
+                            <strong>Date Created:</strong>
+                            {{ profile_user.profile.date_created }}
+
                     </ul>
                 </div>
             </div>

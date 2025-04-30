@@ -157,7 +157,10 @@ def profile(request, user_id=None):
         user = get_object_or_404(User, id=user_id)
     else:
         user = request.user
-    
+
+    collections = Collection.objects.all().filter(creator=user.profile)
+
+
     user_reviews = UserReview.objects.filter(reviewed_user=user)
     avg_user_rating = user_reviews.aggregate(Avg('rating'))['rating__avg'] or 0
     if avg_user_rating:
@@ -185,6 +188,7 @@ def profile(request, user_id=None):
         'user_reviews': user_reviews,
         'avg_user_rating': avg_user_rating,
         'user_review': user_review,
+        'collections': collections,
     }
     return render(request, 'mainmenu/profile.html', context)
 
