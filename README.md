@@ -60,7 +60,7 @@ The main branch has Amazon S3 configured, which cannot be accessed locally. Prof
 - Can't make a private collection if that item is in another collection.
 - Patrons can request access to private collections.
 - Led the Requirements change for collections and created a comprehensive report.
-- Various Debugging Tasks.
+- Various Debugging Tasks and making sure other requirements tasks are completed.
 
 # Licenses for Major Libraries/Frameworks
 | Library / Framework         | License        | URL                            |
