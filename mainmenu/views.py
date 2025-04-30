@@ -99,15 +99,19 @@ def unauth_home_page(request):
 def home_page(request):
     print("In home_page, rendering home_page.html")
     q = request.GET.get('q', '')
+
+    private_item_ids = Item.objects.filter(collections_of__visibility='private').values_list('id', flat=True).distinct()
+    items = Item.objects.exclude(id__in=private_item_ids).distinct()
+
     if q:
-        items = Item.objects.filter(
+        items = items.filter(
             Q(title__icontains=q) |
             Q(description__icontains=q) |
             Q(location__icontains=q) |
             Q(tags__name__icontains=q)
         ).distinct().order_by('-id')
     else:
-        items = Item.objects.all().order_by('-id')
+        items = items.order_by('-id')
 
     context = {
         'tags': Tag.objects.all(),
@@ -153,7 +157,10 @@ def profile(request, user_id=None):
         user = get_object_or_404(User, id=user_id)
     else:
         user = request.user
-    
+
+    collections = Collection.objects.all().filter(creator=user.profile)
+
+
     user_reviews = UserReview.objects.filter(reviewed_user=user)
     avg_user_rating = user_reviews.aggregate(Avg('rating'))['rating__avg'] or 0
     if avg_user_rating:
@@ -181,6 +188,7 @@ def profile(request, user_id=None):
         'user_reviews': user_reviews,
         'avg_user_rating': avg_user_rating,
         'user_review': user_review,
+        'collections': collections,
     }
     return render(request, 'mainmenu/profile.html', context)
 
