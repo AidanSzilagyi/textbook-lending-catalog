@@ -76,8 +76,11 @@
 
   <div class="top-bar">
     {% if user.is_authenticated %}
-      <p class="mb-0">Logged in as {{ user.email }}</p>
+        <div class="mb-3 text-end" style="margin-left: auto; margin-right: 0;">
+            <p class="mb-0">Logged in as {{ user.email }}</p>
+      </div>
     {% endif %}
+
   </div>
 
   <h1 class="text-center my-4">Collections</h1>

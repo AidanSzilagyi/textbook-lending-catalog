@@ -56,6 +56,13 @@
 {% endblock %}
 
 {% block content %}
+
+{% if user.is_authenticated %}
+        <div class="mb-3 text-end" style="margin-left: auto; margin-right: 0;">
+            <p class="mb-0">Logged in as {{ user.email }}</p>
+      </div>
+{% endif %}
+
 <div class="container">
   <div class="page-header">
     <h2>Required Materials</h2>
