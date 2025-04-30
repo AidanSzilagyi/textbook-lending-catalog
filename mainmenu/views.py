@@ -510,7 +510,6 @@ def item_post(request):
         'form': form
     })
 
-@login_required
 def item_detail(request, uuid):
     item = get_object_or_404(Item, uuid=uuid)
     user_review = None
