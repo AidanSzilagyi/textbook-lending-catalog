@@ -293,7 +293,7 @@ def requested_to_in_circulation(request):
             form = DueDateForm(request.POST)
             if form.is_valid():
                 selected_item.status = 'in_circulation'
-                selected_item.borrower = selected_item.message_set.filter(item=selected_item).last().sender  # 👈 Patron
+                selected_item.borrower = selected_item.message_set.filter(item=selected_item).last().sender
                 selected_item.due_date = form.cleaned_data['due_date']
                 selected_item.save()
 
@@ -554,11 +554,11 @@ def collection(request):
             user_collections = Collection.objects.filter(creator=request.user.profile).filter(Q(name__icontains=q))
         collections = collections.filter(Q(name__icontains=q))
 
-    # For anonymous users: exclude private collections entirely
+
     if not request.user.is_authenticated:
         collections = collections.filter(visibility='public')
 
-    # Otherwise, logged-in users see all collections (filtered above)
+
 
     private_item_ids = Item.objects.filter(collections_of__visibility='private').values_list('id', flat=True).distinct()
     items = Item.objects.exclude(id__in=private_item_ids).distinct()
@@ -602,7 +602,7 @@ def edit_collection(request, collection_id):
     if request.user.profile.userRole == 0:  # Patron
         form.fields['visibility'].choices = [('public', 'Public')]
 
-    # Limit selectable items either way
+
     form.fields['items'].queryset = allowed_items
 
     if request.method == 'POST' and form.is_valid():

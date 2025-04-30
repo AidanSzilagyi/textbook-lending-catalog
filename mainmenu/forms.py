@@ -109,8 +109,8 @@ class CollectionForm(forms.ModelForm):
             else:
                 self.fields['items'].queryset = Item.objects.exclude(id__in=private_items)
 
-            user = kwargs.pop('user', None)  # pull user manually
-            if user and user.profile.userRole == 0:  # Patron role
+            user = kwargs.pop('user', None)
+            if user and user.profile.userRole == 0:
                 self.fields['visibility'].choices = [('public', 'Public')]  # Only public
             self.fields['access'].queryset = Profile.objects.exclude(userRole=1)
 

@@ -117,7 +117,6 @@ class Item(models.Model):
     description = models.TextField(blank=True)
     tags = models.ManyToManyField(Tag, related_name='items', blank=True)
     images = models.ManyToManyField(ItemImage, related_name='items', blank=True)
-    #collections = models.ManyToManyField(Collection, related_name='items', blank=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='owned_items')
     due_date = models.DateField(
         blank=True,
