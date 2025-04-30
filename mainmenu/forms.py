@@ -67,13 +67,14 @@ class ItemForm(forms.ModelForm):
 class CollectionForm(forms.ModelForm):
         class Meta:
             model = Collection
-            fields = ['name', 'description', 'items', 'visibility']
+            fields = ['name', 'description', 'items', 'visibility', 'access']
             widgets = {
                 'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter collection title'}),
                 'description': forms.Textarea(
                     attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter description'}),
                 'items': forms.SelectMultiple(attrs={'class': 'form-select'}),
                 'visibility': forms.Select(attrs={'class': 'form-select'}),
+                'access': forms.SelectMultiple(attrs={'class': 'form-select'}),
             }
 
         def clean(self):
@@ -107,6 +108,8 @@ class CollectionForm(forms.ModelForm):
             user = kwargs.pop('user', None)  # pull user manually
             if user and user.profile.userRole == 0:  # Patron role
                 self.fields['visibility'].choices = [('public', 'Public')]  # Only public
+            self.fields['access'].queryset = Profile.objects.exclude(userRole=1)
+
 
 class ProfileForm(forms.ModelForm):
     class Meta:

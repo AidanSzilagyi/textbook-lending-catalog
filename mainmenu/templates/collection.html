@@ -133,7 +133,16 @@
         <h5 class="modal-title" id="addCollectionLabel">Create New Collection</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form style="padding: 10px 10px 10px 10px;" method="post" action="{% url 'collections' %}">
+          <form style="padding: 10px 10px 10px 10px;" method="post" action="{% url 'collections' %}">
+              <div class="mb-3">
+              <label for="access" class="form-label">Grant Access To</label>
+              <select class="form-select" id="access" name="access" multiple>
+                {% for profile in form.access.field.queryset %}
+                  <option value="{{ profile.id }}">{{ profile.user.username }}</option>
+                {% endfor %}
+          </select>
+          <small class="form-text text-muted">Select users (excluding librarians) who can access this collection.</small>
+</div>
         {% csrf_token %}
         <div class="mb-3">
           <label for="name" class="form-label">Collection Title</label>
